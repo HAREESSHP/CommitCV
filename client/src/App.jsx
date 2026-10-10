@@ -949,27 +949,6 @@ export default function App() {
               <p style={{ fontSize: '0.925rem', color: 'var(--text)', fontWeight: 500, lineHeight: 1.65, marginBottom: '1.5rem', maxWidth: '290px', opacity: 0.9 }}>
                 Your commits are your CV. Grounding tech resumes in verifiable AST code citations and zero hallucinations.
               </p>
-
-              {/* Social Buttons */}
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="Instagram">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                  </svg>
-                </a>
-                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="Twitter / X">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-                  </svg>
-                </a>
-                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="LinkedIn">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.64 1.64 0 1 0 0-3.28 1.64 1.64 0 0 0 0 3.28m1.4 9.74v-8.37H5.06v8.37h2.8z"></path>
-                  </svg>
-                </a>
-              </div>
             </div>
 
             {/* Column 2: Location */}
@@ -979,9 +958,6 @@ export default function App() {
               </h4>
               <p style={{ fontSize: '1rem', color: 'var(--text)', fontWeight: 600, lineHeight: 1.6, marginBottom: '0.4rem' }}>
                 Hyderabad, Telangana, India
-              </p>
-              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-                HQ • Remote First Engineering
               </p>
             </div>
 
@@ -1014,6 +990,18 @@ export default function App() {
                   setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
                 }}>
                   How It Works
+                </span>
+                <span className="footer-nav-link" onClick={() => {
+                  setCurrentPage('home');
+                  setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 50);
+                }}>
+                  FAQ
+                </span>
+                <span className="footer-nav-link" onClick={() => {
+                  setCurrentPage('admin');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}>
+                  Admin Access
                 </span>
               </nav>
             </div>
@@ -1051,59 +1039,20 @@ export default function App() {
               © 2026 CommitCV Platform. All rights reserved.
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <button
-                type="button"
-                onClick={() => setCurrentPage('admin')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1.1rem',
-                  borderRadius: 'var(--radius-pill)',
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface)',
-                  color: 'var(--text)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
-              >
-                <ShieldCheck size={16} style={{ color: 'var(--accent)' }} />
-                <span>Admin Access</span>
-              </button>
-
-              <a
-                href="/admin.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-pill-secondary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', textDecoration: 'none' }}
-                title="Open Admin Security Terminal in New Tab"
-              >
-                <Lock size={13} style={{ color: 'var(--accent)' }} />
-                <span>Admin Terminal ↗</span>
-              </a>
-            </div>
-
             {/* Right: TEAM KANYARASI */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.6rem',
+              gap: '0.65rem',
               fontSize: '0.9rem',
-              color: 'var(--text)',
-              fontWeight: 600,
+              color: 'var(--muted)',
+              fontWeight: 500,
               flexWrap: 'wrap'
             }}>
               <span>Designed & Developed by</span>
-              <span className="dev-badge-pill" style={{ cursor: 'default', padding: '0.35rem 0.85rem' }}>
-                <span className="dev-dot-blue" style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)', width: '8px', height: '8px' }} />
-                <span style={{ fontWeight: 800, letterSpacing: '0.04em' }}>TEAM KANYARASI</span>
+              <span className="dev-badge-pill" style={{ cursor: 'default' }}>
+                <span className="dev-dot-emerald" />
+                <span>TEAM KANYARASI</span>
               </span>
             </div>
           </div>
