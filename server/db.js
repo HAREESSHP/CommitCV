@@ -13,28 +13,8 @@ let isConnected = false;
 // In-memory fallbacks when MongoDB is not connected
 export const inMemoryDB = {
   profiles: new Map(),
-  hrTokens: [
-    { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', employeeId: 'CV101', username: 'cv101', password: 'Cv@101', date: '2026-10-08', status: 'Active' },
-    { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', employeeId: 'CV102', username: 'cv102', password: 'Cv@102', date: '2026-10-09', status: 'Active' }
-  ],
-  recruiters: [
-    { 
-      recruiterId: 'REC-8192-STRIPE', 
-      password: 'stripe@password123', 
-      hrName: 'Sarah Jenkins', 
-      org: 'Stripe', 
-      date: '2026-10-08', 
-      status: 'Active' 
-    },
-    { 
-      recruiterId: 'REC-4091-GOOGLE', 
-      password: 'google@cloud2026', 
-      hrName: 'Vikram Mehta', 
-      org: 'Google Cloud', 
-      date: '2026-10-09', 
-      status: 'Active' 
-    }
-  ]
+  hrTokens: [],
+  recruiters: []
 };
 
 export async function connectDB() {

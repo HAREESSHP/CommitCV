@@ -373,6 +373,48 @@ app.get('/api/admin/recruiters', async (req, res) => {
   }
 });
 
+// Admin: Delete HR Recruiter Account
+app.delete('/api/admin/delete-recruiter/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Recruiter ID is required' });
+
+    const cleanId = id.trim().toUpperCase();
+
+    try {
+      if (HRToken.deleteMany) {
+        await HRToken.deleteMany({
+          $or: [
+            { id: cleanId },
+            { recruiterId: cleanId },
+            { username: cleanId.toLowerCase() },
+            { employeeId: cleanId }
+          ]
+        });
+      }
+      if (RecruiterAccount.deleteMany) {
+        await RecruiterAccount.deleteMany({
+          $or: [
+            { recruiterId: cleanId },
+            { id: cleanId },
+            { username: cleanId.toLowerCase() },
+            { employeeId: cleanId }
+          ]
+        });
+      }
+    } catch (e) {
+      console.warn('[DB] Error deleting from Mongo:', e.message);
+    }
+
+    inMemoryDB.hrTokens = inMemoryDB.hrTokens.filter(t => (t.id || '').toUpperCase() !== cleanId && (t.recruiterId || '').toUpperCase() !== cleanId && (t.username || '').toUpperCase() !== cleanId);
+    inMemoryDB.recruiters = inMemoryDB.recruiters.filter(r => (r.recruiterId || '').toUpperCase() !== cleanId && (r.id || '').toUpperCase() !== cleanId && (r.username || '').toUpperCase() !== cleanId);
+
+    res.json({ success: true, message: `Recruiter ID ${id} deleted successfully` });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete recruiter account' });
+  }
+});
+
 // 7. HR / Hiring Manager: Verify Registration Token or Credentials
 app.post('/api/hr/verify-token', async (req, res) => {
   try {

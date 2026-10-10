@@ -41,39 +41,60 @@ export async function fetchGitHubUserData(username) {
   try {
     const headers = getHeaders();
     
-    // 1. Fetch User Info
+    // 1. Fetch GitHub User Profile
     const userRes = await axios.get(`https://api.github.com/users/${cleanUsername}`, { headers });
     const user = userRes.data;
 
-    // 2. Fetch Repositories
+    // 2. Fetch Public Repositories (up to 30 sorted by updated)
     const reposRes = await axios.get(`https://api.github.com/users/${cleanUsername}/repos?sort=updated&per_page=30`, { headers });
-    const repos = reposRes.data;
+    const repos = reposRes.data || [];
 
-    // 3. Fetch Recent Public Events
+    // 3. Fetch Recent Public Events & Commits
     let events = [];
     try {
       const eventsRes = await axios.get(`https://api.github.com/users/${cleanUsername}/events/public?per_page=50`, { headers });
-      events = eventsRes.data;
+      events = eventsRes.data || [];
     } catch (e) {
       // Events might be restricted or empty
     }
 
-    // 4. Fetch README.md content for top 3 repositories
-    const topRepos = repos.slice(0, 3);
+    // 4. Scrape README.md files, Key Build Manifests, and Language Maps for top 5 repos
+    const topRepos = repos.slice(0, 5);
     const readmes = {};
+    const manifests = {};
+    const repoLanguages = {};
+    const manifestCandidates = ['package.json', 'go.mod', 'requirements.txt', 'Cargo.toml', 'Dockerfile', 'db.js', 'server.js'];
+
     await Promise.all(topRepos.map(async (r) => {
-      const content = await fetchRepoReadme(cleanUsername, r.name);
-      if (content) {
-        // Keep first 1200 characters of README to optimize payload
-        readmes[r.name] = content.slice(0, 1200);
+      // Scrape Readme
+      const readmeContent = await fetchRepoReadme(cleanUsername, r.name);
+      if (readmeContent) {
+        readmes[r.name] = readmeContent.slice(0, 2000);
       }
+
+      // Scrape Language Breakdown
+      try {
+        const langRes = await axios.get(`https://api.github.com/repos/${cleanUsername}/${r.name}/languages`, { headers });
+        if (langRes.data) {
+          repoLanguages[r.name] = langRes.data;
+        }
+      } catch {}
+
+      // Scrape Key Manifests
+      manifests[r.name] = {};
+      await Promise.all(manifestCandidates.map(async (fileName) => {
+        const content = await fetchRepoFile(cleanUsername, r.name, fileName);
+        if (content) {
+          manifests[r.name][fileName] = content.slice(0, 3000);
+        }
+      }));
     }));
 
-    const payload = { user, repos, events, readmes };
+    const payload = { user, repos, events, readmes, manifests, repoLanguages };
     cache.set(cleanUsername, { data: payload, timestamp: Date.now() });
     return payload;
   } catch (err) {
-    console.error(`[GitHub API] Error fetching @${cleanUsername}:`, err.response?.status || err.message);
+    console.error(`[GitHub API Scraper] Error fetching @${cleanUsername}:`, err.response?.status || err.message);
     throw err;
   }
 }

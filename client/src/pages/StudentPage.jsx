@@ -1209,28 +1209,42 @@ export default function StudentPage({
       )}
 
       {/* 3. STUDENT PAGE FOOTER */}
-      <footer style={{
-        background: 'var(--bg)',
-        borderTop: '1px solid var(--border)',
-        padding: '1.75rem 1rem',
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
         marginTop: 'auto',
-        textAlign: 'center'
+        paddingTop: '2.5rem',
+        marginBottom: 0
       }}>
-        <div className="container" style={{
+        <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '0.5rem',
-          fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
-          fontSize: '0.95rem',
-          fontWeight: 700,
-          color: 'var(--text)',
-          whiteSpace: 'nowrap'
+          gap: '1.25rem',
+          padding: '0.85rem 2rem',
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-pill)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+          width: 'fit-content',
+          maxWidth: '100%',
+          flexWrap: 'wrap'
         }}>
-          <Terminal size={16} style={{ color: 'var(--accent)' }} />
-          <span>Designed and Developed by <span style={{ color: 'var(--accent)' }}>Team Kanyarasi</span></span>
+          <span style={{ color: 'var(--text)', fontWeight: 600, fontSize: '0.88rem' }}>
+            © 2026 CommitCV Platform. All rights reserved.
+          </span>
+          <span style={{ color: 'var(--border)', userSelect: 'none' }}>|</span>
+          <span style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, fontSize: '0.88rem' }}>
+            <span>Designed &amp; Developed by</span>
+            <span className="dev-badge-pill" style={{ cursor: 'default' }}>
+              <span className="dev-dot-emerald" />
+              <span>TEAM KANYARASI</span>
+            </span>
+          </span>
         </div>
-      </footer>
+      </div>
 
     </main>
   );

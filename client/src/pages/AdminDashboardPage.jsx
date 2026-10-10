@@ -38,93 +38,88 @@ export default function AdminDashboardPage({
   copyFullCredentials,
   tokensList,
   handleGenerateHrToken,
-  handleRevokeToken
+  handleRevokeToken,
+  handleDeleteToken
 }) {
   const list = Array.isArray(tokensList) ? tokensList : [];
   const activeTokensCount = list.filter(t => t && t.status === 'Active').length;
   const uniqueOrgsCount = new Set(list.map(t => t && t.org).filter(Boolean)).size;
 
   return (
-    <main style={{ flex: 1, padding: '3.5rem 0 5rem 0' }}>
-      <div className="container" style={{ maxWidth: '1100px' }}>
+    <main style={{ flex: 1, minHeight: '100vh', display: 'flex', flexDirection: 'column', padding: '2.5rem 0 1.5rem 0', background: 'var(--bg)', color: 'var(--text)' }}>
+      <div className="container" style={{ maxWidth: '1100px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         
-        {/* Executive Header Bar */}
+        {/* Executive Administrative Header Bar */}
         <div style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '1.5rem 2rem',
+          borderRadius: 'var(--radius-md)',
+          padding: '1.4rem 1.75rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: '1.25rem',
-          marginBottom: '2rem',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.06)'
+          marginBottom: '2rem'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              background: 'var(--neon-bg)',
-              border: '1px solid rgba(5, 150, 105, 0.3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--accent)'
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '0.35rem' }}>
+              <h1 style={{
+                fontFamily: 'var(--font-heading)',
+                fontSize: '1.45rem',
+                fontWeight: 800,
+                letterSpacing: '-0.02em',
+                color: 'var(--text)',
+                margin: 0
+              }}>
+                ADMIN CONTROL CENTER
+              </h1>
+
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.2rem 0.65rem',
+                borderRadius: 'var(--radius-pill)',
+                background: 'var(--neon-bg)',
+                color: 'var(--accent)',
+                border: '1px solid var(--accent)',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                fontFamily: 'var(--font-mono)',
+                letterSpacing: '0.03em'
+              }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }} />
+                MONGODB AUTHORITY CONNECTED
+              </span>
+            </div>
+
+            <p style={{
+              color: 'var(--muted)',
+              fontSize: '0.85rem',
+              margin: 0,
+              fontFamily: 'var(--font-body)',
+              fontWeight: 500
             }}>
-              <ShieldCheck size={26} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <h1 style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '1.6rem',
-                  fontWeight: 700,
-                  letterSpacing: '-0.02em',
-                  margin: 0
-                }}>
-                  Admin Control Center
-                </h1>
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.25rem 0.65rem',
-                  borderRadius: '9999px',
-                  background: 'var(--neon-bg)',
-                  color: 'var(--accent)',
-                  fontSize: '0.72rem',
-                  fontWeight: 700,
-                  fontFamily: 'var(--font-mono)'
-                }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }} />
-                  MongoDB Authority Connected
-                </span>
-              </div>
-              <p style={{ color: 'var(--muted)', fontSize: '0.88rem', margin: '0.2rem 0 0 0' }}>
-                Recruiter credential issuance, Employee ID derivation, and access tokens authority.
-              </p>
-            </div>
+              Enterprise access governance, recruiter credential issuance, and Employee ID derivation authority.
+            </p>
           </div>
 
-          {/* Right Corner User & Sign Out */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              gap: '0.55rem',
               padding: '0.5rem 0.95rem',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 'var(--radius-pill)',
               background: 'var(--bg)',
               border: '1px solid var(--border)',
               fontFamily: 'var(--font-mono)',
-              fontSize: '0.82rem'
+              fontSize: '0.8rem'
             }}>
-              <User size={15} style={{ color: 'var(--accent)' }} />
               <span style={{ fontWeight: 700, color: 'var(--text)' }}>@{adminAuth?.username || 'commitcv@1'}</span>
-              <span style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>&bull; Super Admin</span>
+              <span style={{ color: 'var(--border)' }}>|</span>
+              <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.72rem' }}>SUPER ADMIN</span>
             </div>
 
             <button
@@ -132,16 +127,12 @@ export default function AdminDashboardPage({
               onClick={handleAdminLogout}
               className="btn-pill-secondary"
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.45rem',
                 padding: '0.5rem 1.1rem',
-                fontSize: '0.85rem',
-                color: '#f87171'
+                fontSize: '0.82rem',
+                fontWeight: 600
               }}
             >
-              <LogOut size={14} />
-              <span>Sign Out</span>
+              Sign Out
             </button>
           </div>
         </div>
@@ -720,88 +711,144 @@ export default function AdminDashboardPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((tok) => (
-                    <tr key={tok.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
-                        {tok.employeeId || 'EMP-7701'}
-                      </td>
-                      <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                        {tok.id}
-                      </td>
-                      <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                        {tok.username || tok.hrName?.toLowerCase().replace(/\s+/g, '.') || 'recruiter'}
-                      </td>
-                      <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <span style={{
-                            background: 'var(--bg)',
-                            padding: '0.15rem 0.45rem',
-                            borderRadius: '4px',
-                            border: '1px solid var(--border)',
-                            color: 'var(--text)',
-                            fontSize: '0.75rem'
-                          }}>
-                            {tok.password || 'Cv@2026'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => copyToken(tok.password || 'Cv@2026')}
-                            style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)' }}
-                            title="Copy password"
-                          >
-                            {copiedToken === (tok.password || 'Cv@2026') ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
-                          </button>
-                        </div>
-                      </td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <div>
-                          <strong style={{ color: 'var(--text)' }}>{tok.hrName}</strong>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{tok.org}</div>
-                        </div>
-                      </td>
-                      <td style={{ padding: '0.75rem' }}>
-                        <span style={{
-                          padding: '0.2rem 0.5rem',
-                          background: tok.status === 'Active' ? 'var(--neon-bg)' : 'rgba(239, 68, 68, 0.1)',
-                          color: tok.status === 'Active' ? 'var(--accent)' : '#f87171',
-                          borderRadius: 'var(--radius-pill)',
-                          fontSize: '0.72rem'
-                        }}>
-                          {tok.status || 'Active'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                        <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                          <button
-                            type="button"
-                            onClick={() => copyToken(tok.id)}
-                            className="btn-pill-secondary"
-                            style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem' }}
-                          >
-                            {copiedToken === tok.id ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
-                            <span>{copiedToken === tok.id ? 'Copied' : 'Copy ID'}</span>
-                          </button>
-                          {tok.status === 'Active' && (
-                            <button
-                              type="button"
-                              onClick={() => handleRevokeToken(tok.id)}
-                              className="btn-pill-secondary"
-                              title="Revoke access"
-                              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', color: '#f87171' }}
-                            >
-                              Revoke
-                            </button>
-                          )}
-                        </div>
+                  {list.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--muted)', fontSize: '0.88rem' }}>
+                        No HR recruiter accounts registered yet. Enter employee details in the form above to generate production credentials.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    list.map((tok) => (
+                      <tr key={tok.id || tok.recruiterId} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
+                          {tok.employeeId || 'CV-101'}
+                        </td>
+                        <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
+                          {tok.id || tok.recruiterId}
+                        </td>
+                        <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
+                          {tok.username || tok.hrName?.toLowerCase().replace(/\s+/g, '.') || 'recruiter'}
+                        </td>
+                        <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <span style={{
+                              background: 'var(--bg)',
+                              padding: '0.15rem 0.45rem',
+                              borderRadius: '4px',
+                              border: '1px solid var(--border)',
+                              color: 'var(--text)',
+                              fontSize: '0.75rem'
+                            }}>
+                              {tok.password || 'cv@101'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => copyToken(tok.password || 'cv@101')}
+                              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+                              title="Copy password"
+                            >
+                              {copiedToken === (tok.password || 'cv@101') ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
+                            </button>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <div>
+                            <strong style={{ color: 'var(--text)' }}>{tok.hrName}</strong>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{tok.org}</div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.75rem' }}>
+                          <span style={{
+                            padding: '0.2rem 0.5rem',
+                            background: tok.status === 'Active' ? 'var(--neon-bg)' : 'rgba(239, 68, 68, 0.1)',
+                            color: tok.status === 'Active' ? 'var(--accent)' : '#f87171',
+                            borderRadius: 'var(--radius-pill)',
+                            fontSize: '0.72rem'
+                          }}>
+                            {tok.status || 'Active'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                            <button
+                              type="button"
+                              onClick={() => copyToken(tok.id || tok.recruiterId)}
+                              className="btn-pill-secondary"
+                              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem' }}
+                            >
+                              {copiedToken === (tok.id || tok.recruiterId) ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
+                              <span>{copiedToken === (tok.id || tok.recruiterId) ? 'Copied' : 'Copy ID'}</span>
+                            </button>
+                            {tok.status === 'Active' && handleRevokeToken && (
+                              <button
+                                type="button"
+                                onClick={() => handleRevokeToken(tok.id || tok.recruiterId)}
+                                className="btn-pill-secondary"
+                                title="Revoke access"
+                                style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }}
+                              >
+                                Revoke
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteToken && handleDeleteToken(tok.id || tok.recruiterId)}
+                              className="btn-pill-secondary"
+                              title="Delete HR Account permanently"
+                              style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.08)' }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
         </div>
+
+        {/* Bottom Floating Single-Line Footer Bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          marginTop: 'auto',
+          paddingTop: '2.5rem',
+          marginBottom: 0
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1.25rem',
+            padding: '0.85rem 2rem',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-pill)',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
+            width: 'fit-content',
+            maxWidth: '100%',
+            flexWrap: 'wrap'
+          }}>
+            <span style={{ color: 'var(--text)', fontWeight: 600, fontSize: '0.88rem' }}>
+              © 2026 CommitCV Platform. All rights reserved.
+            </span>
+            <span style={{ color: 'var(--border)', userSelect: 'none' }}>|</span>
+            <span style={{ color: 'var(--muted)', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500, fontSize: '0.88rem' }}>
+              <span>Designed &amp; Developed by</span>
+              <span className="dev-badge-pill" style={{ cursor: 'default' }}>
+                <span className="dev-dot-emerald" />
+                <span>TEAM KANYARASI</span>
+              </span>
+            </span>
+          </div>
+        </div>
+
       </div>
     </main>
   );
