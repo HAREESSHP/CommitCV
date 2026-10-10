@@ -4,10 +4,62 @@ import {
   Terminal, 
   ArrowRight, 
   Laptop, 
+  Briefcase,
   AlertTriangle, 
   CheckCircle, 
-  FileCode2
+  FileCode2,
+  Plus
 } from 'lucide-react';
+
+// Scroll-triggered Reveal Wrapper Component for Individual Cards
+function RevealOnScroll({ children, className = '', style = {}, delay = '0s' }) {
+  const ref = React.useRef(null);
+  const [inView, setInView] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const checkView = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.90 && rect.bottom > 0) {
+        setInView(true);
+      }
+    };
+
+    checkView();
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    observer.observe(el);
+    window.addEventListener('scroll', checkView, { passive: true });
+    return () => {
+      observer.unobserve(el);
+      window.removeEventListener('scroll', checkView);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`${className} ${inView ? 'animate-fall-card' : ''}`}
+      style={{
+        ...style,
+        opacity: inView ? undefined : 0,
+        animationDelay: delay
+      }}
+    >
+      {children}
+    </div>
+  );
+}
 
 export default function HomePage({
   githubInput,
@@ -63,27 +115,6 @@ export default function HomePage({
 
     return () => clearTimeout(timer);
   }, [typed1, typed2, typingPhase]);
-
-  // Scroll-triggered Intersection Observer for Section 3 (Advantages)
-  const [featuresInView, setFeaturesInView] = React.useState(false);
-  const featuresRef = React.useRef(null);
-
-  React.useEffect(() => {
-    const target = featuresRef.current;
-    if (!target) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setFeaturesInView(true);
-        }
-      },
-      { threshold: 0.12 }
-    );
-
-    observer.observe(target);
-    return () => observer.unobserve(target);
-  }, []);
 
   return (
     <main style={{ flex: 1 }}>
@@ -512,7 +543,7 @@ export default function HomePage({
       </section>
 
       {/* 3. ADVANTAGES OF COMMITCV */}
-      <section id="features" ref={featuresRef} className="section">
+      <section id="features" className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <div className="section-tag">02 // CORE PROOF INVARIANTS</div>
@@ -530,351 +561,452 @@ export default function HomePage({
             gap: '1.5rem'
           }}>
             {/* Advantage 1 */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '0.15s',
+            <RevealOnScroll delay="0.05s">
+              <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>01 // PROOF FIRST</span>
+                gap: '0.75rem',
+                height: '100%'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
+                  <CheckCircle size={18} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>01 // PROOF FIRST</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Evidence-first analysis</h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                  Our AI retrieves facts from the real repo before it says anything.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Evidence-first analysis</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Our AI retrieves facts from the real repo before it says anything.
-              </p>
-            </div>
+            </RevealOnScroll>
 
             {/* Advantage 2 */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '0.35s',
+            <RevealOnScroll delay="0.15s">
+              <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>02 // AST CITATION</span>
+                gap: '0.75rem',
+                height: '100%'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
+                  <CheckCircle size={18} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>02 // AST CITATION</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Every claim is cited</h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                  Each strength links to the file or commit that proves it.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Every claim is cited</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Each strength links to the file or commit that proves it.
-              </p>
-            </div>
+            </RevealOnScroll>
 
             {/* Advantage 3 */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '0.55s',
+            <RevealOnScroll delay="0.25s">
+              <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>03 // ZERO HALLUCINATION</span>
+                gap: '0.75rem',
+                height: '100%'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
+                  <CheckCircle size={18} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>03 // ZERO HALLUCINATION</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Honest by design</h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                  If there is no evidence, CommitCV says “No evidence found” instead of guessing.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Honest by design</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                If there is no evidence, CommitCV says “No evidence found” instead of guessing.
-              </p>
-            </div>
+            </RevealOnScroll>
 
             {/* Advantage 4 */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '0.75s',
+            <RevealOnScroll delay="0.05s">
+              <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>04 // SKILL TOKENS</span>
+                gap: '0.75rem',
+                height: '100%'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
+                  <CheckCircle size={18} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>04 // SKILL TOKENS</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Verified skill labels</h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                  Each skill is marked Verified, Partial or Unsupported.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Verified skill labels</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Each skill is marked Verified, Partial or Unsupported.
-              </p>
-            </div>
+            </RevealOnScroll>
 
             {/* Advantage 5 */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '0.95s',
+            <RevealOnScroll delay="0.15s">
+              <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>05 // STUDENT DOSSIER</span>
+                gap: '0.75rem',
+                height: '100%'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
+                  <CheckCircle size={18} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>05 // STUDENT DOSSIER</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Ready resume in minutes</h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                  Students get a resume built from their real projects.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Ready resume in minutes</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Students get a resume built from their real projects.
-              </p>
-            </div>
+            </RevealOnScroll>
 
             {/* Advantage 6 */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '1.15s',
+            <RevealOnScroll delay="0.25s">
+              <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-lg)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.75rem'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>06 // RECRUITER RANKING</span>
+                gap: '0.75rem',
+                height: '100%'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
+                  <CheckCircle size={18} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>06 // RECRUITER RANKING</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Ranked shortlist for recruiters</h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                  Candidates are ranked against the job description, with clear reasons.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>Ranked shortlist for recruiters</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Candidates are ranked against the job description, with clear reasons.
-              </p>
-            </div>
+            </RevealOnScroll>
 
             {/* Advantage 7 - Full Width Container Featured Banner */}
-            <div 
-              className={featuresInView ? "animate-fall-card" : ""}
-              style={{
-                opacity: featuresInView ? undefined : 0,
-                animationDelay: '1.35s',
-                gridColumn: '1 / -1',
-                padding: '2rem 2.25rem',
-                background: 'var(--neon-bg)',
-                border: '1px solid var(--accent)',
-                borderRadius: 'var(--radius-lg)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '1.25rem',
-                marginTop: '0.5rem',
-                boxShadow: '0 8px 24px rgba(16, 185, 129, 0.08)'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <RevealOnScroll delay="0.1s">
                 <div style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '50%',
-                  background: 'var(--accent)',
-                  color: '#000000',
+                  padding: '2rem 2.25rem',
+                  background: 'var(--neon-bg)',
+                  border: '1px solid var(--accent)',
+                  borderRadius: 'var(--radius-lg)',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '1.25rem',
+                  marginTop: '0.5rem',
+                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.08)'
                 }}>
-                  <CheckCircle size={22} />
-                </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 700, marginBottom: '0.25rem', letterSpacing: '0.05em' }}>
-                    07 // UNBIASED INVARIANT
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '50%',
+                      background: 'var(--accent)',
+                      color: '#000000',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <CheckCircle size={22} />
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--accent)', fontWeight: 700, marginBottom: '0.25rem', letterSpacing: '0.05em' }}>
+                        07 // UNBIASED INVARIANT
+                      </div>
+                      <h3 style={{ fontSize: '1.4rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", color: 'var(--text)' }}>
+                        Fair by design
+                      </h3>
+                    </div>
                   </div>
-                  <h3 style={{ fontSize: '1.4rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", color: 'var(--text)' }}>
-                    Fair by design
-                  </h3>
+                  <p style={{ fontSize: '0.98rem', color: 'var(--text)', lineHeight: 1.6, margin: 0, maxWidth: '560px', fontWeight: 500 }}>
+                    Scores are advisory, and candidate name, photo, and location are never used in evaluation algorithms.
+                  </p>
                 </div>
-              </div>
-              <p style={{ fontSize: '0.98rem', color: 'var(--text)', lineHeight: 1.6, margin: 0, maxWidth: '560px', fontWeight: 500 }}>
-                Scores are advisory, and candidate name, photo, and location are never used in evaluation algorithms.
-              </p>
+              </RevealOnScroll>
             </div>
 
           </div>
         </div>
       </section>
 
-      {/* 4. HOW IT WORKS (STACKING CARDS) */}
-      <section id="how-it-works" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <div className="section-tag">03 // VERIFICATION PIPELINE</div>
+      {/* 4. HOW IT WORKS (SIDE-BY-SIDE DUAL PIPELINE WITH CURVED CONNECTING LINE) */}
+      <section id="how-it-works" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', paddingBottom: '7rem', overflow: 'hidden' }}>
+        <div className="container" style={{ position: 'relative' }}>
+          
+          {/* Section Header */}
+          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+            <div className="section-tag">03 // DUAL PIPELINE WORKFLOW</div>
             <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
               From GitHub link to proof in three steps
             </h2>
-            <p style={{ fontSize: '1.05rem', color: 'var(--muted)' }}>
-              Card stack workflow for Students and Hiring Teams.
+            <p style={{ fontSize: '1.05rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
+              Side-by-side workflow for Students and Hiring Teams connected by AST code verification.
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-            
-            {/* Step 1 Card */}
+          {/* Dual Column Header Labels */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '2.5rem',
+            marginBottom: '2.5rem',
+            maxWidth: '1040px',
+            margin: '0 auto 2.5rem auto'
+          }}>
+            {/* Student Column Header */}
             <div style={{
-              position: 'sticky',
-              top: '100px',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.25rem',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.06)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 700 }}>
-                  STEP 01
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)' }}>
-                  INPUT INGESTION
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-                Step 1: Paste the GitHub link.
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR STUDENTS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Add your profile link.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR RECRUITERS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Add the job description and candidate links.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 Card */}
-            <div style={{
-              position: 'sticky',
-              top: '130px',
-              background: 'var(--bg)',
+              padding: '1.25rem 1.5rem',
+              background: 'var(--neon-bg)',
               border: '1px solid var(--accent)',
               borderRadius: 'var(--radius-lg)',
-              padding: '2.25rem',
-              boxShadow: '0 15px 35px rgba(0,0,0,0.08)'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.08)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 700 }}>
-                  STEP 02
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent)' }}>
-                  AST CODE GROUNDING
-                </span>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: 'var(--accent)', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Laptop size={20} />
               </div>
-
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-                Step 2: AI reads the real code.
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR STUDENTS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    It finds your strengths, roles and skill gaps.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR RECRUITERS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    It matches each candidate to the job requirements.
-                  </p>
-                </div>
+              <div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, display: 'block' }}>FOR STUDENTS</span>
+                <h4 style={{ fontSize: '1.15rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", color: 'var(--text)' }}>
+                  Build a Code-Proven Resume
+                </h4>
               </div>
             </div>
 
-            {/* Step 3 Card */}
+            {/* Recruiter Column Header */}
             <div style={{
-              position: 'sticky',
-              top: '160px',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
+              padding: '1.25rem 1.5rem',
+              background: 'rgba(56, 189, 248, 0.08)',
+              border: '1px solid #38BDF8',
               borderRadius: 'var(--radius-lg)',
-              padding: '2.25rem',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              boxShadow: '0 8px 24px rgba(56, 189, 248, 0.08)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 700 }}>
-                  STEP 03
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)' }}>
-                  CITATION VERIFICATION
-                </span>
+              <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#38BDF8', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Briefcase size={20} />
               </div>
+              <div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#38BDF8', fontWeight: 700, display: 'block' }}>FOR RECRUITERS</span>
+                <h4 style={{ fontSize: '1.15rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", color: 'var(--text)' }}>
+                  Screen with AST-Verified Proof
+                </h4>
+              </div>
+            </div>
+          </div>
 
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-                Step 3: Get proof-backed results.
-              </h3>
+          {/* Pipeline Container with Center Curved Connecting SVG Line */}
+          <div style={{ position: 'relative', maxWidth: '1040px', margin: '0 auto' }}>
+            
+            {/* Center Curved SVG Path connecting Step 1 to Step 2 to Step 3 */}
+            <svg
+              style={{
+                position: 'absolute',
+                top: '50px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '120px',
+                height: 'calc(100% - 100px)',
+                pointerEvents: 'none',
+                zIndex: 0
+              }}
+              viewBox="0 0 120 700"
+              preserveAspectRatio="none"
+            >
+              <path
+                d="M 60 0 C 110 110, 10 230, 60 350 C 110 470, 10 590, 60 700"
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="3.5"
+                strokeDasharray="6 6"
+                style={{ opacity: 0.5 }}
+              />
+            </svg>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR STUDENTS:
+            {/* STEP 1 ROW */}
+            <div style={{ marginBottom: '3.5rem', position: 'relative', zIndex: 2 }}>
+              {/* Step Node Badge */}
+              <RevealOnScroll delay="0s">
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                  <span className="section-tag" style={{ background: 'var(--bg)', border: '1px solid var(--accent)', padding: '0.4rem 1.25rem', fontSize: '0.8rem', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+                    STEP 01 // INPUT INGESTION
                   </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Get a ready resume and a next project to build.
-                  </p>
                 </div>
+              </RevealOnScroll>
 
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR RECRUITERS:
+              {/* Side-by-Side Step 1 Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
+                {/* Student Card 1 */}
+                <RevealOnScroll delay="0.1s">
+                  <div style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2.25rem',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+                    borderLeft: '4px solid var(--accent)',
+                    height: '100%'
+                  }}>
+                    <h3 style={{ fontSize: '1.3rem', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                      1. Paste your GitHub Profile
+                    </h3>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                      Add your profile link. CommitCV instantly ingests your public repos, package manifests, and commit logs.
+                    </p>
+                  </div>
+                </RevealOnScroll>
+
+                {/* Recruiter Card 1 */}
+                <RevealOnScroll delay="0.25s">
+                  <div style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2.25rem',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+                    borderLeft: '4px solid #38BDF8',
+                    height: '100%'
+                  }}>
+                    <h3 style={{ fontSize: '1.3rem', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                      1. Input Job Specs & Applicants
+                    </h3>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                      Paste your target job requirements and applicant profile links for automated proof-backed screening.
+                    </p>
+                  </div>
+                </RevealOnScroll>
+              </div>
+            </div>
+
+            {/* STEP 2 ROW */}
+            <div style={{ marginBottom: '3.5rem', position: 'relative', zIndex: 2 }}>
+              {/* Step Node Badge */}
+              <RevealOnScroll delay="0s">
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                  <span className="section-tag" style={{ background: 'var(--bg)', border: '1px solid var(--accent)', padding: '0.4rem 1.25rem', fontSize: '0.8rem', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+                    STEP 02 // AST CODE GROUNDING
                   </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Get a ranked shortlist and can ask questions about any candidate’s code.
-                  </p>
                 </div>
+              </RevealOnScroll>
+
+              {/* Side-by-Side Step 2 Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
+                {/* Student Card 2 */}
+                <RevealOnScroll delay="0.1s">
+                  <div style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2.25rem',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+                    borderLeft: '4px solid var(--accent)',
+                    height: '100%'
+                  }}>
+                    <h3 style={{ fontSize: '1.3rem', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                      2. AI Reads the Real Code
+                    </h3>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                      The AST engine grounds your technical strengths, extracts verified languages, and maps skill gaps against industry roles.
+                    </p>
+                  </div>
+                </RevealOnScroll>
+
+                {/* Recruiter Card 2 */}
+                <RevealOnScroll delay="0.25s">
+                  <div style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2.25rem',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+                    borderLeft: '4px solid #38BDF8',
+                    height: '100%'
+                  }}>
+                    <h3 style={{ fontSize: '1.3rem', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                      2. Automated JD Match
+                    </h3>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                      The RAG engine evaluates each candidate’s actual code files directly against your job description requirements.
+                    </p>
+                  </div>
+                </RevealOnScroll>
+              </div>
+            </div>
+
+            {/* STEP 3 ROW */}
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              {/* Step Node Badge */}
+              <RevealOnScroll delay="0s">
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                  <span className="section-tag" style={{ background: 'var(--bg)', border: '1px solid var(--accent)', padding: '0.4rem 1.25rem', fontSize: '0.8rem', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+                    STEP 03 // CITATION VERIFICATION
+                  </span>
+                </div>
+              </RevealOnScroll>
+
+              {/* Side-by-Side Step 3 Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
+                {/* Student Card 3 */}
+                <RevealOnScroll delay="0.1s">
+                  <div style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2.25rem',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+                    borderLeft: '4px solid var(--accent)',
+                    height: '100%'
+                  }}>
+                    <h3 style={{ fontSize: '1.3rem', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                      3. Get Proof-Backed Results
+                    </h3>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                      Get a ready resume with clickable file citations and a recommended next project to build to upgrade your profile.
+                    </p>
+                  </div>
+                </RevealOnScroll>
+
+                {/* Recruiter Card 3 */}
+                <RevealOnScroll delay="0.25s">
+                  <div style={{
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: '2.25rem',
+                    boxShadow: '0 12px 32px rgba(0,0,0,0.08)',
+                    borderLeft: '4px solid #38BDF8',
+                    height: '100%'
+                  }}>
+                    <h3 style={{ fontSize: '1.3rem', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                      3. Ranked Shortlist & Code Q&A
+                    </h3>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
+                      Get a ranked candidate shortlist with proof tokens, plus the ability to ask natural language questions about any applicant’s repo.
+                    </p>
+                  </div>
+                </RevealOnScroll>
               </div>
             </div>
 
@@ -882,6 +1014,143 @@ export default function HomePage({
         </div>
       </section>
 
+      {/* 5. FREQUENTLY ASKED QUESTIONS SECTION */}
+      <FaqSection />
+
     </main>
+  );
+}
+
+{/* FAQ Accordion Component */}
+function FaqSection() {
+  const [openIndex, setOpenIndex] = React.useState(null);
+
+  const faqData = [
+    {
+      q: "How does CommitCV verify developer skills without hallucinating?",
+      a: "CommitCV uses an AST (Abstract Syntax Tree) and RAG (Retrieval-Augmented Generation) engine connected directly to real GitHub repositories, source code files, and package manifests (such as package.json or Dockerfile). If concrete proof is not found in public code, CommitCV explicitly states 'No evidence found in public repositories' instead of guessing."
+    },
+    {
+      q: "What is the difference between Verified, Partial, and Unsupported skills?",
+      a: "VERIFIED skills are found directly inside source code files, unit tests, or build configurations with clickable file citations. PARTIAL skills are cited from README files or commit descriptions. UNSUPPORTED skills indicate that no evidence was discovered in public repositories."
+    },
+    {
+      q: "Is candidate personal information used during evaluation?",
+      a: "No. CommitCV strictly enforces an Unbiased Invariant: candidate name, photo, age, gender, and location are never passed to evaluation algorithms. All candidate scoring is 100% code-driven and proof-backed."
+    },
+    {
+      q: "How long does it take to generate a proof-backed dossier or rank candidates?",
+      a: "Analysis takes under 30 seconds per profile. The AST engine ingests public commit logs, repo structures, and manifests instantly to produce a ready-to-share dossier with clickable file citations."
+    },
+    {
+      q: "Can recruiters ask natural language questions about candidate repositories?",
+      a: "Yes! Recruiters can query candidate repos with prompts like 'Has candidate built WebSocket servers in Node.js?' or 'Show proof of Docker usage,' and CommitCV returns direct lines of code and commit references answering the prompt."
+    },
+    {
+      q: "Can students update their dossier as they push new commits?",
+      a: "Yes. Re-analyzing a profile or connecting a GitHub handle immediately re-indexes new commits and pull requests, upgrading verified skill tokens automatically."
+    }
+  ];
+
+  const toggle = (idx) => {
+    setOpenIndex(openIndex === idx ? null : idx);
+  };
+
+  return (
+    <section id="faq" className="section" style={{ borderTop: '1px solid var(--border)', paddingBottom: '7.5rem' }}>
+      <div className="container" style={{ maxWidth: '860px' }}>
+        
+        {/* FAQ Header */}
+        <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+          <div className="section-tag">04 // FREQUENTLY ASKED QUESTIONS</div>
+          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+            Frequently Asked Questions
+          </h2>
+          <p style={{ fontSize: '1.05rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '600px' }}>
+            Everything you need to know about code verification, skill citations, and proof-backed hiring.
+          </p>
+        </div>
+
+        {/* Accordion List */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {faqData.map((item, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <RevealOnScroll key={index} delay={`${(index % 3) * 0.1}s`}>
+                <div style={{
+                  background: 'var(--surface)',
+                  border: isOpen ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                  overflow: 'hidden',
+                  transition: 'all 250ms ease',
+                  boxShadow: isOpen ? '0 12px 32px rgba(16, 185, 129, 0.08)' : '0 4px 16px rgba(0,0,0,0.04)'
+                }}>
+                  {/* Question Header Row */}
+                  <button
+                    type="button"
+                    onClick={() => toggle(index)}
+                    style={{
+                      width: '100%',
+                      padding: '1.5rem 1.75rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '1.25rem',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      color: 'var(--text)'
+                    }}
+                  >
+                    <span style={{
+                      fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
+                      fontSize: '1.15rem',
+                      fontWeight: 600,
+                      lineHeight: 1.35
+                    }}>
+                      {item.q}
+                    </span>
+
+                    {/* Plus / Minus Action Button */}
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: isOpen ? 'var(--accent)' : 'var(--surface-raised)',
+                      color: isOpen ? '#000000' : 'var(--text)',
+                      border: '1px solid var(--border)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'all 200ms ease',
+                      transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)'
+                    }}>
+                      <Plus size={20} />
+                    </div>
+                  </button>
+
+                  {/* Expandable Answer Body */}
+                  {isOpen && (
+                    <div style={{
+                      padding: '0 1.75rem 1.75rem 1.75rem',
+                      color: 'var(--muted)',
+                      fontSize: '0.98rem',
+                      lineHeight: 1.65,
+                      borderTop: '1px solid var(--border-subtle)',
+                      paddingTop: '1.25rem'
+                    }}>
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              </RevealOnScroll>
+            );
+          })}
+        </div>
+
+      </div>
+    </section>
   );
 }
