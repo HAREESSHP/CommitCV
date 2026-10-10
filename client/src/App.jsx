@@ -689,14 +689,25 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => setCurrentPage('student')}
+              onClick={() => {
+                setCurrentPage('student');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className="btn-pill-secondary"
               style={{
-                background: currentPage === 'student' ? 'var(--surface-raised)' : 'transparent',
-                borderColor: currentPage === 'student' ? 'var(--text)' : 'transparent'
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                whiteSpace: 'nowrap',
+                padding: '0.45rem 1rem',
+                background: currentPage === 'student' ? 'var(--neon-bg)' : 'var(--surface)',
+                borderColor: currentPage === 'student' ? 'var(--accent)' : 'var(--border)',
+                color: currentPage === 'student' ? 'var(--accent)' : 'var(--text)',
+                fontWeight: 700
               }}
             >
-              Student
+              <Laptop size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+              <span>For Students</span>
             </button>
           </nav>
 
@@ -864,7 +875,8 @@ export default function App() {
           FOOTER: VisionX Reference Layout & Constellation Network
           Dual Mode: Carbon Obsidian (Dark) & Studio Paper (Light)
           ==================================================================== */}
-      <footer className="constellation-wrapper" style={{
+      {currentPage !== 'student' && (
+        <footer className="constellation-wrapper" style={{
         background: 'var(--surface)',
         borderTop: '1px solid var(--border)',
         padding: '4.5rem 0 2rem 0',
@@ -1058,6 +1070,7 @@ export default function App() {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }

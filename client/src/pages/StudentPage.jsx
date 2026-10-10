@@ -4,19 +4,20 @@ import {
   Terminal, 
   ArrowRight, 
   Laptop, 
-  Briefcase, 
-  AlertTriangle, 
   CheckCircle, 
-  TrendingUp,
   FileCode2,
-  ShieldCheck,
-  Check,
-  X,
-  FileText,
-  UserCheck,
+  GitCommit,
   Layers,
   Zap,
-  Mail
+  TrendingUp,
+  FileText,
+  ExternalLink,
+  ShieldCheck,
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  Copy,
+  Check
 } from 'lucide-react';
 
 export default function StudentPage({
@@ -27,44 +28,63 @@ export default function StudentPage({
   handleAnalyzeUsername,
   setCurrentPage
 }) {
+  const [copiedLink, setCopiedLink] = React.useState(false);
+
+  const copyShareLink = () => {
+    const handle = studentReport ? studentReport.username : 'alex-chen';
+    navigator.clipboard.writeText(`https://commitcv.com/student/${handle}`);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   return (
     <main style={{ flex: 1 }}>
       
-      {/* HERO SECTION */}
-      <section className="section" style={{ paddingTop: '2.75rem', paddingBottom: '2.5rem' }}>
+      {/* 1. STUDENT HERO & PROFILE SCANNER */}
+      <section className="section" style={{ paddingTop: '1.25rem', paddingBottom: '3rem' }}>
         <div className="container" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div className="section-tag">
-            <Sparkles size={13} />
-            <span>CODE-GROUNDED RESUME ENGINE</span>
-          </div>
-
-          <h1 style={{ maxWidth: '980px', marginBottom: '1.5rem', lineHeight: 1.05, fontFamily: 'var(--font-heading)' }}>
-            Your code is the resume. <br />
+          <h1 style={{ 
+            maxWidth: '920px', 
+            marginBottom: '1.25rem', 
+            lineHeight: 1.05, 
+            fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
+            fontSize: 'clamp(2.5rem, 5vw, 4.25rem)'
+          }}>
+            Your commits are your CV. <br />
             <span style={{ color: 'var(--accent)' }}>Ground every claim in proof.</span>
           </h1>
 
-          <p style={{ fontSize: '1.2rem', lineHeight: 1.6, maxWidth: '680px', marginBottom: '2.5rem', color: 'var(--muted)' }}>
-            Traditional resumes are filled with unverified buzzwords. CommitCV parses real GitHub code, commits, and manifest files to generate verifiable dossiers for students and exact JD matches for recruiters.
+          <p style={{ 
+            fontSize: '1.15rem', 
+            lineHeight: 1.6, 
+            maxWidth: '680px', 
+            marginBottom: '2.5rem', 
+            color: 'var(--muted)' 
+          }}>
+            Traditional resumes rely on self-reported buzzwords. CommitCV ingests your public GitHub code, commits, and package manifests to build a proof-backed dossier with zero hallucinations.
           </p>
 
-          {/* Quick Input Form */}
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            if (!githubInput.trim()) return;
-            handleAnalyzeUsername(githubInput);
-          }} style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            padding: '0.5rem 0.5rem 0.5rem 1.5rem',
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-pill)',
-            width: '100%',
-            maxWidth: '640px',
-            marginBottom: '2rem',
-            boxShadow: '0 12px 32px rgba(0,0,0,0.08)'
-          }}>
+          {/* Quick GitHub Scan Form */}
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!githubInput.trim()) return;
+              handleAnalyzeUsername(githubInput);
+            }} 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              padding: '0.55rem 0.55rem 0.55rem 1.4rem',
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-pill)',
+              width: '100%',
+              maxWidth: '620px',
+              marginBottom: '1.5rem',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.1)'
+            }}
+          >
             <Terminal size={18} style={{ color: 'var(--muted)', flexShrink: 0 }} />
             <input 
               type="text"
@@ -77,7 +97,7 @@ export default function StudentPage({
                 outline: 'none',
                 background: 'transparent',
                 fontFamily: 'var(--font-mono)',
-                fontSize: '0.9rem',
+                fontSize: '0.925rem',
                 color: 'var(--text)'
               }}
             />
@@ -85,678 +105,311 @@ export default function StudentPage({
               type="submit" 
               className="btn-pill"
               disabled={analyzing}
-              style={{ padding: '0.45rem 0.5rem 0.45rem 1.25rem' }}
+              style={{ padding: '0.5rem 0.6rem 0.5rem 1.35rem', fontSize: '0.9rem' }}
             >
-              <span>{analyzing ? 'Scanning...' : 'Analyze Code'}</span>
+              <span>{analyzing ? 'Scanning Repos...' : 'Generate Dossier'}</span>
               <div className="btn-pill-arrow">
                 <ArrowRight size={14} />
               </div>
             </button>
           </form>
 
-          {/* Preset Buttons */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontFamily: 'var(--font-mono)', alignSelf: 'center' }}>Try demo profiles:</span>
-            <button 
-              type="button" 
-              className="btn-pill-secondary" 
-              style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }}
-              onClick={() => handleAnalyzeUsername('alex-chen')}
-            >
-              @alex-chen (Go/Cloud)
-            </button>
-            <button 
-              type="button" 
-              className="btn-pill-secondary" 
-              style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }}
-              onClick={() => handleAnalyzeUsername('maya-patel')}
-            >
-              @maya-patel (React/TS)
-            </button>
-          </div>
         </div>
       </section>
 
-      {/* STUDENT REPORT DOSSIER DISPLAY (If scanned) */}
+      {/* 2. STUDENT REPORT DOSSIER DISPLAY (If scanned or active) */}
       {studentReport && (
-        <section className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
+        <section className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', paddingBottom: '6rem' }}>
           <div className="container">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', maxWidth: '1080px', margin: '0 auto' }}>
               
-              {/* Activity Overview Card */}
-              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', paddingBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)' }}>
+              {/* Profile Header Dossier Card */}
+              <div style={{
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '2.5rem',
+                boxShadow: '0 16px 40px rgba(0,0,0,0.08)',
+                position: 'relative'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', paddingBottom: '1.75rem', borderBottom: '1px solid var(--border-subtle)' }}>
                   <img 
                     src={studentReport.avatar} 
                     alt={studentReport.name} 
-                    style={{ width: '72px', height: '72px', borderRadius: '50%', border: '2px solid var(--accent)', objectFit: 'cover' }}
+                    style={{ width: '84px', height: '84px', borderRadius: '50%', border: '3px solid var(--accent)', objectFit: 'cover' }}
                   />
                   <div>
-                    <h2 style={{ fontSize: '1.75rem', margin: 0, fontFamily: 'var(--font-heading)' }}>{studentReport.name}</h2>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--accent)', marginTop: '0.2rem' }}>
-                      @{studentReport.username}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <h2 style={{ fontSize: '2rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                        {studentReport.name}
+                      </h2>
+                      <span className="section-tag" style={{ margin: 0, padding: '0.2rem 0.6rem', fontSize: '0.7rem' }}>
+                        🔥 HIGHLY CONSISTENT
+                      </span>
+                    </div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--accent)', marginTop: '0.3rem', fontWeight: 600 }}>
+                      @{studentReport.username} • GitHub Verified Profile
                     </div>
                   </div>
 
-                  <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)' }}>ACTIVITY SCORE</div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, color: 'var(--accent)', lineHeight: 1 }}>
-                      {studentReport.activity.score}/100
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-pill-secondary"
+                      onClick={copyShareLink}
+                      style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                    >
+                      {copiedLink ? <Check size={14} style={{ color: 'var(--accent)' }} /> : <Copy size={14} />}
+                      <span>{copiedLink ? 'Link Copied!' : 'Share Dossier'}</span>
+                    </button>
+                    
+                    <div style={{ textAlign: 'right', background: 'var(--surface)', padding: '0.75rem 1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 700 }}>ACTIVITY SCORE</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.25rem', fontWeight: 800, color: 'var(--accent)', lineHeight: 1 }}>
+                        {studentReport.activity.score}<span style={{ fontSize: '1.1rem', color: 'var(--muted)' }}>/100</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', margin: '1.5rem 0' }}>
-                  <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block' }}>CONSISTENCY STATUS</span>
+                {/* Metrics Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginTop: '1.75rem' }}>
+                  <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block', fontWeight: 700, marginBottom: '0.25rem' }}>CONSISTENCY STATUS</span>
                     <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.1rem' }}>{studentReport.activity.label}</span>
                   </div>
-                  <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block' }}>ESTIMATED COMMITS</span>
-                    <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.1rem' }}>{studentReport.activity.commitsLastYear} commits</span>
+                  <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block', fontWeight: 700, marginBottom: '0.25rem' }}>ESTIMATED COMMITS</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.1rem' }}>{studentReport.activity.commitsLastYear} commits / year</span>
                   </div>
-                  <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block' }}>PUBLIC REPOSITORIES</span>
-                    <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.1rem' }}>{studentReport.activity.publicRepos} repos</span>
+                  <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block', fontWeight: 700, marginBottom: '0.25rem' }}>PUBLIC REPOSITORIES</span>
+                    <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.1rem' }}>{studentReport.activity.publicRepos} Repositories</span>
                   </div>
-                  <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block' }}>WEEKLY CADENCE</span>
+                  <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)', display: 'block', fontWeight: 700, marginBottom: '0.25rem' }}>WEEKLY CADENCE</span>
                     <span style={{ fontWeight: 700, color: 'var(--text)', fontSize: '1.1rem' }}>{studentReport.activity.weeklyCadence}</span>
                   </div>
                 </div>
 
-                <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: 0 }}>
-                  💡 <strong>Summary:</strong> {studentReport.activity.summary}
-                </p>
+                <div style={{
+                  marginTop: '1.5rem',
+                  padding: '1rem 1.25rem',
+                  background: 'var(--neon-bg)',
+                  border: '1px solid var(--accent)',
+                  borderRadius: 'var(--radius-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.85rem'
+                }}>
+                  <ShieldCheck size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  <p style={{ fontSize: '0.925rem', color: 'var(--text)', margin: 0, fontWeight: 500, lineHeight: 1.5 }}>
+                    <strong>AST Grounding Summary:</strong> {studentReport.activity.summary}
+                  </p>
+                </div>
               </div>
 
-              {/* Verified Tech Stacks */}
-              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', fontFamily: 'var(--font-heading)' }}>Verified Tech Stacks</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+              {/* Verified Tech Stacks Section */}
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                      Verified Tech Stacks & Skill Badges
+                    </h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
+                      Every badge is evaluated directly against AST code trees and repository manifests.
+                    </p>
+                  </div>
+                  <span className="section-tag" style={{ margin: 0 }}>VERIFIED IN SOURCE CODE</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
                   {studentReport.techStacks.map((tech, idx) => (
-                    <div key={idx} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
+                    <div key={idx} style={{
+                      background: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '1.5rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.85rem'
+                    }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 600, fontSize: '1.05rem' }}>{tech.name}</span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-pill)', background: 'var(--neon-bg)', color: 'var(--accent)' }}>
-                          VERIFIED IN CODE
+                        <span style={{ fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontWeight: 700, fontSize: '1.15rem', color: 'var(--text)' }}>
+                          {tech.name}
+                        </span>
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '0.25rem 0.6rem',
+                          borderRadius: 'var(--radius-pill)',
+                          background: 'var(--proof-verified-bg)',
+                          color: 'var(--proof-verified)',
+                          border: '1px solid var(--proof-verified)'
+                        }}>
+                          VERIFIED
                         </span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--muted)', margin: '0.5rem 0' }}>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--muted)' }}>
                         <span>{tech.type}</span>
-                        <span>{tech.repos} Repositories</span>
+                        <span style={{ fontFamily: 'var(--font-mono)' }}>{tech.repos} Repos</span>
                       </div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text)' }}>
-                        Proficiency: <strong>{tech.level}</strong>
+
+                      <div style={{
+                        padding: '0.65rem 0.85rem',
+                        background: 'var(--bg)',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '0.8rem',
+                        fontFamily: 'var(--font-mono)',
+                        color: 'var(--text)'
+                      }}>
+                        Level: <strong style={{ color: 'var(--accent)' }}>{tech.level}</strong>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
+              {/* Code Citation & Proof Stream */}
+              {studentReport.citations && studentReport.citations.length > 0 && (
+                <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
+                  <div style={{ marginBottom: '1.75rem' }}>
+                    <h3 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                      AST Code Citations & Verifiable Claims
+                    </h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
+                      Concrete proof tokens extracted from public repository files.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {studentReport.citations.map((cite, idx) => (
+                      <div key={idx} style={{
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.85rem'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)' }}>
+                            CLAIM: {cite.claim}
+                          </span>
+                          <span style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.72rem',
+                            padding: '0.2rem 0.6rem',
+                            borderRadius: 'var(--radius-pill)',
+                            background: 'var(--neon-bg)',
+                            color: 'var(--accent)',
+                            border: '1px solid var(--accent)'
+                          }}>
+                            {cite.repo}
+                          </span>
+                        </div>
+
+                        <div style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.82rem',
+                          background: 'var(--bg)',
+                          padding: '0.75rem 1rem',
+                          borderRadius: 'var(--radius-sm)',
+                          border: '1px solid var(--border)',
+                          color: 'var(--text)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
+                        }}>
+                          <FileCode2 size={15} style={{ color: 'var(--accent)' }} />
+                          <span>Citation: {cite.file}</span>
+                          <span style={{ marginLeft: 'auto', color: 'var(--muted)', fontSize: '0.75rem' }}>
+                            Commit: {cite.commit}
+                          </span>
+                        </div>
+
+                        <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>
+                          {cite.detail}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recommended Next Projects */}
+              {studentReport.recommendedRoles && (
+                <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
+                  <div style={{ marginBottom: '1.75rem' }}>
+                    <h3 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                      Recommended Target Roles & Next Projects
+                    </h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
+                      AI-recommended projects to build next to level up candidate match scores.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                    {studentReport.recommendedRoles.map((role, idx) => (
+                      <div key={idx} style={{
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '1.75rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h4 style={{ fontSize: '1.15rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                            {role.role}
+                          </h4>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '1.25rem', fontWeight: 800, color: 'var(--accent)' }}>
+                            {role.match}%
+                          </span>
+                        </div>
+
+                        <div>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>
+                            MATCHING SKILLS:
+                          </span>
+                          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            {role.matchingSkills.map((s, i) => (
+                              <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'var(--neon-bg)', color: 'var(--accent)', padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-pill)' }}>
+                                ✓ {s}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#f87171', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>
+                            RECOMMENDED PROJECT TO BUILD NEXT:
+                          </span>
+                          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            {role.missingSkills.map((s, i) => (
+                              <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', padding: '0.2rem 0.5rem', borderRadius: 'var(--radius-pill)' }}>
+                                + Add {s}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
+
           </div>
         </section>
       )}
-
-      {/* ====================================================================
-          SECTION 2: WHY TRADITIONAL SYSTEMS FAIL
-          ==================================================================== */}
-      <section id="why-commitcv" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div className="section-tag">01 // THE PARADIGM SHIFT</div>
-            <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-heading)', marginBottom: '0.5rem' }}>
-              Why traditional hiring falls short
-            </h2>
-            <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
-              Skills are claimed on resumes, but rarely verified.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '1.5rem'
-          }}>
-            {/* Card 1 */}
-            <div style={{
-              padding: '2rem',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                color: '#f87171',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <AlertTriangle size={20} />
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)', lineHeight: 1.3 }}>
-                Resumes can’t be trusted
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Anyone can list a skill. Recruiters have no quick way to check it.
-              </p>
-            </div>
-
-            {/* Card 2 */}
-            <div style={{
-              padding: '2rem',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'rgba(245, 158, 11, 0.1)',
-                color: '#F59E0B',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <FileCode2 size={20} />
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)', lineHeight: 1.3 }}>
-                GitHub is hard to read at scale
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Recruiters don’t have time to open dozens of profiles and read the code.
-              </p>
-            </div>
-
-            {/* Card 3 */}
-            <div style={{
-              padding: '2rem',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'rgba(59, 130, 246, 0.1)',
-                color: '#3B82F6',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Terminal size={20} />
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)', lineHeight: 1.3 }}>
-                AI scores come without proof
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Most tools give a number with no explanation, so nobody can trust it.
-              </p>
-            </div>
-
-            {/* Card 4 */}
-            <div style={{
-              padding: '2rem',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem'
-            }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'rgba(168, 85, 247, 0.1)',
-                color: '#a855f7',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Laptop size={20} />
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)', lineHeight: 1.3 }}>
-                Students go unseen
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Good projects sit on GitHub while the resume stays weak, and talent gets missed.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          SECTION 3: ADVANTAGES OF COMMITCV
-          ==================================================================== */}
-      <section id="advantages" className="section">
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div className="section-tag">02 // CORE PROOF INVARIANTS</div>
-            <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-heading)', marginBottom: '0.5rem' }}>
-              Hire on proof, not claims
-            </h2>
-            <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
-              Every result is backed by real code.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '1.5rem'
-          }}>
-            {/* Advantage 1 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>01 // PROOF FIRST</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Evidence-first analysis</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Our AI retrieves facts from the real repo before it says anything.
-              </p>
-            </div>
-
-            {/* Advantage 2 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>02 // AST CITATION</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Every claim is cited</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Each strength links to the file or commit that proves it.
-              </p>
-            </div>
-
-            {/* Advantage 3 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>03 // ZERO HALLUCINATION</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Honest by design</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                If there is no evidence, CommitCV says “No evidence found” instead of guessing.
-              </p>
-            </div>
-
-            {/* Advantage 4 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>04 // SKILL TOKENS</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Verified skill labels</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Each skill is marked Verified, Partial or Unsupported.
-              </p>
-            </div>
-
-            {/* Advantage 5 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>05 // STUDENT DOSSIER</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Ready resume in minutes</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Students get a resume built from their real projects.
-              </p>
-            </div>
-
-            {/* Advantage 6 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>06 // RECRUITER RANKING</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Ranked shortlist for recruiters</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Candidates are ranked against the job description, with clear reasons.
-              </p>
-            </div>
-
-            {/* Advantage 7 */}
-            <div style={{
-              padding: '1.75rem',
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent)' }}>
-                <CheckCircle size={18} />
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', fontWeight: 700 }}>07 // UNBIASED INVARIANT</span>
-              </div>
-              <h3 style={{ fontSize: '1.15rem', margin: 0, fontFamily: 'var(--font-heading)' }}>Fair by design</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--muted)', lineHeight: 1.6, margin: 0 }}>
-                Scores are advisory, and name, photo and location are never used.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          SECTION 4: HOW IT WORKS (STACKING CARDS)
-          ==================================================================== */}
-      <section id="how-it-works" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
-        <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div className="section-tag">03 // VERIFICATION PIPELINE</div>
-            <h2 style={{ fontSize: '2.2rem', fontFamily: 'var(--font-heading)', marginBottom: '0.5rem' }}>
-              From GitHub link to proof in three steps
-            </h2>
-            <p style={{ fontSize: '1rem', color: 'var(--muted)' }}>
-              Card stack workflow for Students and Hiring Teams.
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '840px', margin: '0 auto' }}>
-            
-            {/* Step 1 Card */}
-            <div style={{
-              position: 'sticky',
-              top: '100px',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.25rem',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.06)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 700 }}>
-                  STEP 01
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)' }}>
-                  INPUT INGESTION
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-                Step 1: Paste the GitHub link.
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR STUDENTS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Add your profile link.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR RECRUITERS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Add the job description and candidate links.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 Card */}
-            <div style={{
-              position: 'sticky',
-              top: '130px',
-              background: 'var(--bg)',
-              border: '1px solid var(--accent)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.25rem',
-              boxShadow: '0 15px 35px rgba(0,0,0,0.08)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 700 }}>
-                  STEP 02
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--accent)' }}>
-                  AST CODE GROUNDING
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-                Step 2: AI reads the real code.
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR STUDENTS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    It finds your strengths, roles and skill gaps.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR RECRUITERS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    It matches each candidate to the job requirements.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 Card */}
-            <div style={{
-              position: 'sticky',
-              top: '160px',
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.25rem',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: 'var(--accent)', fontWeight: 700 }}>
-                  STEP 03
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)' }}>
-                  CITATION VERIFICATION
-                </span>
-              </div>
-
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '1.25rem', fontFamily: 'var(--font-heading)' }}>
-                Step 3: Get proof-backed results.
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.25rem' }}>
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR STUDENTS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Get a ready resume and a next project to build.
-                  </p>
-                </div>
-
-                <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--accent)', display: 'block', fontWeight: 700, marginBottom: '0.2rem' }}>
-                    FOR RECRUITERS:
-                  </span>
-                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text)' }}>
-                    Get a ranked shortlist and can ask questions about any candidate’s code.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          SECTION 5: CONTACT SECTION
-          ==================================================================== */}
-      <section id="contact" className="section">
-        <div className="container" style={{ maxWidth: '720px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <div className="section-tag">04 // GET IN TOUCH</div>
-            <h2 style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', marginBottom: '0.5rem' }}>
-              Contact Team Kanyarasi
-            </h2>
-            <p style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>
-              Have questions about AST repository grounding or recruiter token integrations? Reach out to us.
-            </p>
-          </div>
-
-          <div style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '2.5rem'
-          }}>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              alert('Thank you for reaching out to Team Kanyarasi! We will get back to you shortly.');
-            }} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem', fontWeight: 700 }}>
-                  YOUR NAME:
-                </label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="Enter your name" 
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    background: 'var(--bg)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--text)',
-                    fontSize: '0.9rem',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem', fontWeight: 700 }}>
-                  EMAIL ADDRESS:
-                </label>
-                <input 
-                  type="email" 
-                  required 
-                  placeholder="name@company.com" 
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    background: 'var(--bg)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--text)',
-                    fontSize: '0.9rem',
-                    outline: 'none'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem', fontWeight: 700 }}>
-                  MESSAGE / INQUIRY:
-                </label>
-                <textarea 
-                  rows={4} 
-                  required 
-                  placeholder="How can Team Kanyarasi assist you?" 
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    background: 'var(--bg)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    color: 'var(--text)',
-                    fontSize: '0.9rem',
-                    outline: 'none',
-                    resize: 'vertical'
-                  }}
-                />
-              </div>
-
-              <button type="submit" className="btn-pill" style={{ justifyContent: 'center', marginTop: '0.5rem' }}>
-                <Mail size={15} />
-                <span>Send Message to Team Kanyarasi</span>
-              </button>
-            </form>
-          </div>
-        </div>
-      </section>
 
     </main>
   );

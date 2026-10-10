@@ -251,12 +251,13 @@ a {
   font-family: var(--font-body);
   font-size: 0.875rem;
   font-weight: 600;
-  padding: 0.55rem 1.25rem;
+  padding: 0.45rem 1rem;
   cursor: pointer;
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
   transition: all 180ms ease;
+  white-space: nowrap;
 }
 
 .btn-pill-secondary:hover {
