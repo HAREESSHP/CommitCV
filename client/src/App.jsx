@@ -33,14 +33,11 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-<<<<<<< HEAD
   Shield,
   KeyRound,
-  User
-=======
+  User,
   Eye,
   EyeOff
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -123,17 +120,13 @@ export default function App() {
   const [studentReport, setStudentReport] = useState(null);
 
   // Recruiter Authentication State
-<<<<<<< HEAD
-  const [recruiterAuth, setRecruiterAuth] = useState(null); // { hrName, org, token }
-  const [hrTokenInput, setHrTokenInput] = useState('');
-  const [hrPasswordInput, setHrPasswordInput] = useState('');
-  const [hrEmailInput, setHrEmailInput] = useState('');
-=======
   const [recruiterAuth, setRecruiterAuth] = useState(null); // { recruiterId, hrName, org }
   const [recruiterIdInput, setRecruiterIdInput] = useState('');
   const [recruiterPasswordInput, setRecruiterPasswordInput] = useState('');
+  const [hrTokenInput, setHrTokenInput] = useState('');
+  const [hrPasswordInput, setHrPasswordInput] = useState('');
+  const [hrEmailInput, setHrEmailInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   const [loginError, setLoginError] = useState('');
   const [recruitersList, setRecruitersList] = useState([]);
 
@@ -143,8 +136,8 @@ export default function App() {
   const [matchingJd, setMatchingJd] = useState(false);
   const [jdMatchResult, setJdMatchResult] = useState(null);
 
-<<<<<<< HEAD
-  // Admin Section State (Production Gateway & Session)
+  // Admin Section State (Production Gateway & Credentials Generator)
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminAuth, setAdminAuth] = useState(() => {
     try {
       const saved = localStorage.getItem('commitcv_admin_session');
@@ -154,31 +147,29 @@ export default function App() {
     }
   });
   const [adminUsername, setAdminUsername] = useState('admin');
-=======
-  // Admin Section State (Generate Recruiter ID and Password)
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   const [adminPassword, setAdminPassword] = useState('');
   const [adminPin, setAdminPin] = useState('2026');
   const [adminShowPassword, setAdminShowPassword] = useState(false);
   const [adminError, setAdminError] = useState('');
-<<<<<<< HEAD
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminTokenSearch, setAdminTokenSearch] = useState('');
   const [hrTokens, setHrTokens] = useState([]);
   const [newHrName, setNewHrName] = useState('');
   const [newOrg, setNewOrg] = useState('');
   const [newEmployeeId, setNewEmployeeId] = useState('');
-  const [issuedCredentialCard, setIssuedCredentialCard] = useState(null);
-  const [copiedToken, setCopiedToken] = useState(null);
-=======
-  const [newHrName, setNewHrName] = useState('');
-  const [newOrg, setNewOrg] = useState('');
   const [newCustomId, setNewCustomId] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [issuedCredentialCard, setIssuedCredentialCard] = useState(null);
+  const [copiedToken, setCopiedToken] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
   const [copiedPass, setCopiedPass] = useState(null);
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+
+  const copyToken = (val) => {
+    if (!val) return;
+    navigator.clipboard.writeText(val);
+    setCopiedToken(val);
+    setTimeout(() => setCopiedToken(null), 2000);
+  };
 
   const deriveCredentials = (empId) => {
     let clean = (empId || '').trim();
@@ -322,87 +313,80 @@ export default function App() {
     e?.preventDefault();
     setLoginError('');
 
-<<<<<<< HEAD
-    const tokenOrUser = hrTokenInput.trim();
-    if (!tokenOrUser) {
-      setLoginError('Please enter your HR Registration ID or Employee ID / Username.');
-=======
-    const id = recruiterIdInput.trim();
-    const pass = recruiterPasswordInput.trim();
+    const id = (recruiterIdInput || hrTokenInput).trim();
+    const pass = (recruiterPasswordInput || hrPasswordInput).trim();
 
-    if (!id || !pass) {
-      setLoginError('Please enter both Recruiter ID and Password.');
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+    if (!id) {
+      setLoginError('Please enter your Recruiter ID or Registration Token.');
       return;
     }
 
     try {
-<<<<<<< HEAD
-      const payload = hrPasswordInput.trim()
-        ? { username: tokenOrUser, password: hrPasswordInput.trim() }
-        : { token: tokenOrUser };
-
-      const res = await fetch(`${API_BASE}/hr/verify-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.verified) {
-        setRecruiterAuth({
-          token: data.username || tokenOrUser,
-          hrName: data.hrName || 'Lead Recruiter',
-          org: data.org || 'Hiring Partner',
-          employeeId: data.employeeId,
-          username: data.username
+      if (pass) {
+        const res = await fetch(`${API_BASE}/recruiter/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recruiterId: id, password: pass })
         });
-        setCurrentPage('recruiter-workspace');
-      } else {
-        setLoginError('Invalid credentials. Check your Employee ID / Username and Password, or Registration Token.');
+        const data = await res.json();
+        if (data.success && data.recruiter) {
+          setRecruiterAuth(data.recruiter);
+          setCurrentPage('recruiter-dashboard');
+          setRecruiterIdInput('');
+          setRecruiterPasswordInput('');
+          return;
+        }
       }
-    } catch {
-      // Fallback allow if starts with HR- or demo
-      if (tokenOrUser.toUpperCase().startsWith('HR-') || tokenOrUser.toUpperCase() === 'DEMO') {
-        setRecruiterAuth({
-          token: tokenOrUser.toUpperCase(),
-          hrName: 'Demo Talent Manager',
-          org: 'Stripe'
-=======
-      const res = await fetch(`${API_BASE}/recruiter/login`, {
+
+      // Try HR token verification endpoint
+      const tokenRes = await fetch(`${API_BASE}/hr/verify-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recruiterId: id, password: pass })
+        body: JSON.stringify(pass ? { username: id, password: pass } : { token: id })
       });
-      const data = await res.json();
-      if (data.success && data.recruiter) {
-        setRecruiterAuth(data.recruiter);
+      const tokenData = await tokenRes.json();
+      if (tokenData.verified) {
+        setRecruiterAuth({
+          recruiterId: tokenData.username || id,
+          hrName: tokenData.hrName || 'Lead Recruiter',
+          org: tokenData.org || 'Hiring Partner',
+          employeeId: tokenData.employeeId
+        });
         setCurrentPage('recruiter-dashboard');
         setRecruiterIdInput('');
         setRecruiterPasswordInput('');
-      } else {
-        setLoginError(data.error || 'Invalid Recruiter ID or Password.');
+        return;
       }
-    } catch {
+
       // Local check fallback
       const found = recruitersList.find(
-        r => r.recruiterId.toUpperCase() === id.toUpperCase() && r.password === pass
+        r => (r.recruiterId?.toUpperCase() === id.toUpperCase() || r.username?.toUpperCase() === id.toUpperCase()) && (!pass || r.password === pass)
       );
       if (found) {
         setRecruiterAuth({
           recruiterId: found.recruiterId,
           hrName: found.hrName,
           org: found.org
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+        });
+        setCurrentPage('recruiter-dashboard');
+        setRecruiterIdInput('');
+        setRecruiterPasswordInput('');
+        return;
+      }
+
+      setLoginError('Invalid Recruiter ID or Password. Credentials can be generated in Admin Access.');
+    } catch {
+      if (id.toUpperCase().startsWith('REC-') || id.toUpperCase().startsWith('HR-') || id.toUpperCase() === 'DEMO') {
+        setRecruiterAuth({
+          recruiterId: id.toUpperCase(),
+          hrName: 'Authorized Talent Manager',
+          org: 'Stripe'
         });
         setCurrentPage('recruiter-dashboard');
         setRecruiterIdInput('');
         setRecruiterPasswordInput('');
       } else {
-<<<<<<< HEAD
-        setLoginError('Invalid credentials. Check your Employee ID and password or use "HR-8192-STRIPE".');
-=======
-        setLoginError('Invalid Recruiter ID or Password. Credentials can be generated in Admin Access.');
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+        setLoginError('Invalid credentials. Check your Recruiter ID and password or use "REC-8192-STRIPE".');
       }
     }
   };
@@ -461,63 +445,54 @@ export default function App() {
     const creds = deriveCredentials(empId);
 
     try {
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const cleanOrg = newOrg.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const recId = newCustomId.trim() ? newCustomId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
+      const recPass = newPassword.trim() ? newPassword.trim() : (creds.password || `${cleanOrg.toLowerCase()}@pass${randomNum}`);
+
       const res = await fetch(`${API_BASE}/admin/create-recruiter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-<<<<<<< HEAD
-        body: JSON.stringify({ 
-          hrName: newHrName.trim(), 
-          org: newOrg.trim(),
-          employeeId: empId
-        })
-      });
-      const data = await res.json();
-      if (data.success && data.token) {
-        setHrTokens([data.token, ...hrTokens]);
-        setIssuedCredentialCard(data.token);
-=======
         body: JSON.stringify({
-          hrName: newHrName,
-          org: newOrg,
-          customId: newCustomId,
-          password: newPassword
+          hrName: newHrName.trim(),
+          org: newOrg.trim(),
+          customId: recId,
+          password: recPass,
+          employeeId: empId
         })
       });
       const data = await res.json();
       if (data.success && data.recruiter) {
         setRecruitersList([data.recruiter, ...recruitersList]);
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+        setHrTokens([data.recruiter, ...hrTokens]);
+        setIssuedCredentialCard(data.recruiter);
       }
     } catch {
       const randomNum = Math.floor(1000 + Math.random() * 9000);
       const cleanOrg = newOrg.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const recId = newCustomId.trim() ? newCustomId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
+      const recPass = newPassword.trim() ? newPassword.trim() : (creds.password || `${cleanOrg.toLowerCase()}@pass${randomNum}`);
       const localAccount = {
-        recruiterId: newCustomId.trim() ? newCustomId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`,
-        password: newPassword.trim() ? newPassword.trim() : `${cleanOrg.toLowerCase()}@pass${randomNum}`,
+        id: recId,
+        recruiterId: recId,
+        password: recPass,
         hrName: newHrName.trim(),
         org: newOrg.trim(),
         employeeId: empId,
-        username: creds.username,
-        password: creds.password,
+        username: creds.username || empId.toLowerCase(),
         date: new Date().toISOString().split('T')[0],
         status: 'Active'
       };
-<<<<<<< HEAD
-      setHrTokens([localToken, ...hrTokens]);
-      setIssuedCredentialCard(localToken);
-=======
       setRecruitersList([localAccount, ...recruitersList]);
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+      setHrTokens([localAccount, ...hrTokens]);
+      setIssuedCredentialCard(localAccount);
     }
 
     setNewOrg('');
     setNewHrName('');
-<<<<<<< HEAD
     setNewEmployeeId('');
-=======
     setNewCustomId('');
     setNewPassword('');
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   };
 
   const copyText = (val, type) => {
@@ -1089,22 +1064,14 @@ export default function App() {
 
               <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>Recruiter Portal Login</h1>
               <p style={{ color: 'var(--muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
-<<<<<<< HEAD
-                Sign in with your issued Registration Token ID or your Employee Username & Password.
-=======
-                Enter your issued Recruiter Login ID and Password to access candidate screening and JD matching.
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+                Enter your issued Recruiter Login ID (or Registration Token) and Password to access candidate screening and JD matching.
               </p>
 
               <form onSubmit={handleRecruiterLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {/* Recruiter ID Field */}
                 <div>
                   <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
-<<<<<<< HEAD
-                    HR REGISTRATION ID OR EMPLOYEE USERNAME:
-=======
-                    RECRUITER LOGIN ID:
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+                    RECRUITER LOGIN ID / TOKEN ID:
                   </label>
                   <div style={{
                     display: 'flex',
@@ -1118,15 +1085,12 @@ export default function App() {
                     <Key size={16} style={{ color: 'var(--accent)' }} />
                     <input 
                       type="text"
-<<<<<<< HEAD
-                      placeholder="e.g. cv101 or HR-8192-STRIPE"
-                      value={hrTokenInput}
-                      onChange={(e) => setHrTokenInput(e.target.value)}
-=======
-                      placeholder="e.g. REC-8192-STRIPE or REC-4091-GOOGLE"
-                      value={recruiterIdInput}
-                      onChange={(e) => setRecruiterIdInput(e.target.value)}
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+                      placeholder="e.g. REC-8192-STRIPE or cv101 or HR-8192-STRIPE"
+                      value={recruiterIdInput || hrTokenInput}
+                      onChange={(e) => {
+                        setRecruiterIdInput(e.target.value);
+                        setHrTokenInput(e.target.value);
+                      }}
                       required
                       style={{
                         flex: 1,
@@ -1145,44 +1109,7 @@ export default function App() {
                 {/* Password Field */}
                 <div>
                   <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
-<<<<<<< HEAD
-                    PASSWORD (FOR EMPLOYEE ID LOGIN):
-                  </label>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0 1rem',
-                    background: 'var(--bg)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-pill)'
-                  }}>
-                    <Lock size={16} style={{ color: 'var(--accent)' }} />
-                    <input 
-                      type="password"
-                      placeholder="e.g. Cv@101 (or leave blank if using Token ID)"
-                      value={hrPasswordInput}
-                      onChange={(e) => setHrPasswordInput(e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: '0.75rem 0',
-                        border: 'none',
-                        outline: 'none',
-                        background: 'transparent',
-                        fontFamily: 'var(--font-mono)',
-                        fontSize: '0.9rem',
-                        color: 'var(--text)'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
-                    RECRUITER WORK EMAIL (OPTIONAL):
-=======
                     PASSWORD:
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                   </label>
                   <div style={{
                     display: 'flex',
@@ -1196,10 +1123,12 @@ export default function App() {
                     <Lock size={16} style={{ color: 'var(--muted)' }} />
                     <input 
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="Enter recruiter password"
-                      value={recruiterPasswordInput}
-                      onChange={(e) => setRecruiterPasswordInput(e.target.value)}
-                      required
+                      placeholder="Enter recruiter password (e.g. stripe@password123 or Cv@101)"
+                      value={recruiterPasswordInput || hrPasswordInput}
+                      onChange={(e) => {
+                        setRecruiterPasswordInput(e.target.value);
+                        setHrPasswordInput(e.target.value);
+                      }}
                       style={{
                         flex: 1,
                         padding: '0.75rem 0',
@@ -1832,28 +1761,13 @@ export default function App() {
       )}
 
       {/* ====================================================================
-<<<<<<< HEAD
-          PAGE 5: DEDICATED SEPARATE ADMIN LOGIN (Production Security Gateway)
+          PAGE 5: DEDICATED ADMIN LOGIN (Production Security Gateway)
           ==================================================================== */}
-      {(currentPage === 'admin-login' || (currentPage === 'admin' && !adminAuth)) && (
+      {(currentPage === 'admin-login' || (currentPage === 'admin' && !adminAuth && !isAdminLoggedIn)) && (
         <main style={{ flex: 1, padding: '4rem 0 6rem 0', display: 'flex', alignItems: 'center' }}>
           <div className="container" style={{ maxWidth: '520px', width: '100%' }}>
             
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-=======
-          PAGE 5: ADMIN PORTAL (Generates Recruiter ID and Password)
-          ==================================================================== */}
-      {currentPage === 'admin' && (
-        <main style={{ flex: 1, padding: '3.5rem 0 5rem 0' }}>
-          <div className="container" style={{ maxWidth: '880px' }}>
-            <div className="section-tag">ADMINISTRATIVE DASHBOARD</div>
-            <h1 style={{ fontSize: '2.4rem', marginBottom: '0.5rem' }}>Admin Control Center</h1>
-            <p style={{ color: 'var(--muted)', marginBottom: '2.5rem' }}>
-              Generate authenticated <strong>Login IDs</strong> and <strong>Passwords</strong> for company recruiters.
-            </p>
-
-            {!isAdminLoggedIn ? (
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1868,7 +1782,6 @@ export default function App() {
                 color: 'var(--accent)',
                 marginBottom: '1rem'
               }}>
-<<<<<<< HEAD
                 <Shield size={12} />
                 <span>RESTRICTED ACCESS // PRODUCTION GATEWAY</span>
               </div>
@@ -1876,15 +1789,9 @@ export default function App() {
                 Admin Security Terminal
               </h1>
               <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                Authentication required. Enter administrative credentials to access the recruiter token authority.
+                Authentication required. Enter administrative credentials to access the recruiter authority.
               </p>
             </div>
-=======
-                <h3 style={{ marginBottom: '0.5rem' }}>Admin Authorization</h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
-                  Enter your admin passcode to access the Recruiter Credentials generator.
-                </p>
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
 
             <div style={{
               background: 'var(--surface)',
@@ -2550,9 +2457,6 @@ export default function App() {
                     </div>
                   </div>
                 </form>
-              </div>
-<<<<<<< HEAD
-
               {/* Issued Tokens Registry */}
               <div style={{
                 background: 'var(--surface)',
@@ -2560,11 +2464,6 @@ export default function App() {
                 borderRadius: 'var(--radius-lg)',
                 padding: '2rem'
               }}>
-=======
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                {/* Generator Form */}
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -2573,7 +2472,6 @@ export default function App() {
                   gap: '1rem',
                   marginBottom: '1.25rem'
                 }}>
-<<<<<<< HEAD
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.3rem' }}>Issued HR Registration Tokens & Credentials</h3>
                     <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>
@@ -2670,176 +2568,6 @@ export default function App() {
                                 <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{tok.org}</div>
                               </div>
                             </td>
-=======
-                  <h3 style={{ marginBottom: '0.4rem' }}>Generate Recruiter Account (ID & Password)</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
-                    Provide recruiter details to generate their authenticated credentials.
-                  </p>
-
-                  <form onSubmit={handleCreateRecruiter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                      <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
-                          RECRUITER NAME:
-                        </label>
-                        <input 
-                          type="text"
-                          placeholder="e.g. Rachel Adams"
-                          value={newHrName}
-                          onChange={(e) => setNewHrName(e.target.value)}
-                          required
-                          style={{
-                            width: '100%',
-                            padding: '0.65rem 1rem',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-pill)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            color: 'var(--text)'
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
-                          ORGANIZATION / COMPANY:
-                        </label>
-                        <input 
-                          type="text"
-                          placeholder="e.g. Netflix, Stripe, Google"
-                          value={newOrg}
-                          onChange={(e) => setNewOrg(e.target.value)}
-                          required
-                          style={{
-                            width: '100%',
-                            padding: '0.65rem 1rem',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-pill)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            color: 'var(--text)'
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
-                          CUSTOM RECRUITER ID (OPTIONAL):
-                        </label>
-                        <input 
-                          type="text"
-                          placeholder="Leave blank to auto-generate"
-                          value={newCustomId}
-                          onChange={(e) => setNewCustomId(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '0.65rem 1rem',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-pill)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            color: 'var(--text)'
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
-                          PASSWORD (OPTIONAL):
-                        </label>
-                        <input 
-                          type="text"
-                          placeholder="Leave blank to auto-generate"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '0.65rem 1rem',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-pill)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            color: 'var(--text)'
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                      <button type="submit" className="btn-pill">
-                        <span>Generate Recruiter Credentials</span>
-                        <div className="btn-pill-arrow">
-                          <UserPlus size={14} />
-                        </div>
-                      </button>
-                    </div>
-                  </form>
-                </div>
-
-                {/* Issued Recruiter Accounts Table */}
-                <div style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '2rem'
-                }}>
-                  <h3 style={{ marginBottom: '1rem' }}>Active Recruiter Accounts (ID & Password)</h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--muted)' }}>
-                          <th style={{ padding: '0.75rem' }}>RECRUITER ID</th>
-                          <th style={{ padding: '0.75rem' }}>PASSWORD</th>
-                          <th style={{ padding: '0.75rem' }}>RECRUITER NAME</th>
-                          <th style={{ padding: '0.75rem' }}>ORGANIZATION</th>
-                          <th style={{ padding: '0.75rem' }}>STATUS</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recruitersList.map((acc, idx) => (
-                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                            {/* ID */}
-                            <td style={{ padding: '0.75rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{acc.recruiterId}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => copyText(acc.recruiterId, 'id')}
-                                  className="btn-pill-secondary"
-                                  style={{ padding: '0.15rem 0.4rem', fontSize: '0.68rem' }}
-                                >
-                                  {copiedId === acc.recruiterId ? <Check size={11} color="var(--accent)" /> : <Copy size={11} />}
-                                </button>
-                              </div>
-                            </td>
-
-                            {/* Password */}
-                            <td style={{ padding: '0.75rem' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                <code style={{ background: 'var(--surface-raised)', padding: '0.2rem 0.45rem', borderRadius: '4px' }}>
-                                  {acc.password}
-                                </code>
-                                <button
-                                  type="button"
-                                  onClick={() => copyText(acc.password, 'pass')}
-                                  className="btn-pill-secondary"
-                                  style={{ padding: '0.15rem 0.4rem', fontSize: '0.68rem' }}
-                                >
-                                  {copiedPass === acc.password ? <Check size={11} color="var(--accent)" /> : <Copy size={11} />}
-                                </button>
-                              </div>
-                            </td>
-
-                            {/* Name & Org */}
-                            <td style={{ padding: '0.75rem' }}>{acc.hrName}</td>
-                            <td style={{ padding: '0.75rem' }}>{acc.org}</td>
-
-                            {/* Status */}
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                             <td style={{ padding: '0.75rem' }}>
                               <span style={{
                                 padding: '0.2rem 0.5rem',
@@ -2848,10 +2576,9 @@ export default function App() {
                                 borderRadius: 'var(--radius-pill)',
                                 fontSize: '0.72rem'
                               }}>
-                                {acc.status || 'Active'}
+                                {tok.status || 'Active'}
                               </span>
                             </td>
-<<<<<<< HEAD
                             <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                               <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                                 <button
@@ -2876,8 +2603,6 @@ export default function App() {
                                 )}
                               </div>
                             </td>
-=======
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                           </tr>
                         ))}
                     </tbody>
@@ -2886,8 +2611,9 @@ export default function App() {
               </div>
             </div>
           </div>
-        </main>
-      )}
+        </div>
+      </main>
+    )}
 
       {/* ====================================================================
           FOOTER: VisionX Reference Layout & Constellation Network
@@ -3119,21 +2845,7 @@ export default function App() {
               © 2026 CommitCV Platform. All rights reserved.
             </div>
 
-<<<<<<< HEAD
-            <a
-              href="/admin.html"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-pill-secondary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', textDecoration: 'none' }}
-              title="Open Admin Security Terminal in New Tab"
-            >
-              <Lock size={13} style={{ color: 'var(--accent)' }} />
-              <span>Admin Login ↗</span>
-            </a>
-=======
-            {/* Center Pill: Admin Access button */}
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <button
                 type="button"
                 onClick={() => setCurrentPage('admin')}
@@ -3158,6 +2870,18 @@ export default function App() {
                 <ShieldCheck size={16} style={{ color: 'var(--accent)' }} />
                 <span>Admin Access</span>
               </button>
+
+              <a
+                href="/admin.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-pill-secondary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', textDecoration: 'none' }}
+                title="Open Admin Security Terminal in New Tab"
+              >
+                <Lock size={13} style={{ color: 'var(--accent)' }} />
+                <span>Admin Terminal ↗</span>
+              </a>
             </div>
 
             {/* Right: TEAM KANYARASI */}
@@ -3176,7 +2900,6 @@ export default function App() {
                 <span style={{ fontWeight: 800, letterSpacing: '0.04em' }}>TEAM KANYARASI</span>
               </span>
             </div>
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
           </div>
         </div>
       </footer>

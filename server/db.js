@@ -13,11 +13,10 @@ let isConnected = false;
 // In-memory fallbacks when MongoDB is not connected
 export const inMemoryDB = {
   profiles: new Map(),
-<<<<<<< HEAD
   hrTokens: [
     { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', employeeId: 'CV101', username: 'cv101', password: 'Cv@101', date: '2026-10-08', status: 'Active' },
     { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', employeeId: 'CV102', username: 'cv102', password: 'Cv@102', date: '2026-10-09', status: 'Active' }
-=======
+  ],
   recruiters: [
     { 
       recruiterId: 'REC-8192-STRIPE', 
@@ -35,7 +34,6 @@ export const inMemoryDB = {
       date: '2026-10-09', 
       status: 'Active' 
     }
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   ]
 };
 
@@ -71,9 +69,8 @@ const StudentProfileSchema = new mongoose.Schema({
   analyzedAt: { type: Date, default: Date.now }
 });
 
-const RecruiterAccountSchema = new mongoose.Schema({
-  recruiterId: { type: String, required: true, unique: true, index: true },
-  password: { type: String, required: true },
+const HRTokenSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, index: true },
   hrName: { type: String, required: true },
   org: { type: String, required: true },
   employeeId: { type: String },
@@ -83,5 +80,17 @@ const RecruiterAccountSchema = new mongoose.Schema({
   status: { type: String, default: 'Active' }
 });
 
+const RecruiterAccountSchema = new mongoose.Schema({
+  recruiterId: { type: String, required: true, unique: true, index: true },
+  password: { type: String, required: true },
+  hrName: { type: String, required: true },
+  org: { type: String, required: true },
+  employeeId: { type: String },
+  username: { type: String },
+  date: { type: String, default: () => new Date().toISOString().split('T')[0] },
+  status: { type: String, default: 'Active' }
+});
+
 export const StudentProfile = mongoose.models.StudentProfile || mongoose.model('StudentProfile', StudentProfileSchema);
+export const HRToken = mongoose.models.HRToken || mongoose.model('HRToken', HRTokenSchema);
 export const RecruiterAccount = mongoose.models.RecruiterAccount || mongoose.model('RecruiterAccount', RecruiterAccountSchema);

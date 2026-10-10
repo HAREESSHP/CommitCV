@@ -1,14 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-<<<<<<< HEAD
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import { connectDB, inMemoryDB, StudentProfile, HRToken } from './db.js';
-=======
-import { connectDB, inMemoryDB, StudentProfile, RecruiterAccount } from './db.js';
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+import { connectDB, inMemoryDB, StudentProfile, HRToken, RecruiterAccount } from './db.js';
 import { fetchGitHubUserData } from './github.js';
 import { analyzeCandidate, matchCandidateWithJD } from './rag.js';
 
@@ -164,7 +160,6 @@ app.post('/api/recruiter/match-jd', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
 // 4. Admin Authentication (Production Credentials Verification)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'CommitCV@2026';
@@ -216,29 +211,58 @@ app.post('/api/admin/generate-hr-token', async (req, res) => {
     if (match) {
       const prefix = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
       generatedPassword = `${prefix}@${match[2]}`;
-=======
-// 4. Admin: Generate Recruiter Account (ID and Password)
-app.post('/api/admin/create-recruiter', async (req, res) => {
-  try {
-    const { hrName, org, password, customId } = req.body;
-    if (!hrName || !org) {
-      return res.status(400).json({ error: 'Recruiter Name and Organization are required' });
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
     }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const cleanOrg = org.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const recruiterId = customId ? customId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
-    const recruiterPassword = password ? password.trim() : `${cleanOrg.toLowerCase()}@pass${randomNum}`;
+    const tokenId = `HR-${randomNum}-${cleanOrg}`;
+
+    const tokenEntry = {
+      id: tokenId,
+      hrName: hrName.trim(),
+      org: org.trim(),
+      employeeId: cleanEmpId.toUpperCase(),
+      username: cleanUsername,
+      password: generatedPassword,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Active'
+    };
+
+    try {
+      if (HRToken.create) {
+        await HRToken.create(tokenEntry);
+      }
+    } catch {
+      inMemoryDB.hrTokens.unshift(tokenEntry);
+    }
+
+    res.json({ success: true, token: tokenEntry });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to generate HR registration ID' });
+  }
+});
+
+// Admin: Generate Recruiter Account (ID and Password)
+app.post('/api/admin/create-recruiter', async (req, res) => {
+  try {
+    const { hrName, org, password, customId, employeeId } = req.body;
+    if (!hrName || !org) {
+      return res.status(400).json({ error: 'Recruiter Name and Organization are required' });
+    }
+
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const cleanOrg = org.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const recruiterId = customId && customId.trim() ? customId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
+    const recruiterPassword = password && password.trim() ? password.trim() : `${cleanOrg.toLowerCase()}@pass${randomNum}`;
+    const cleanEmp = employeeId ? employeeId.trim().toUpperCase() : `CV${randomNum}`;
 
     const account = {
       recruiterId,
       password: recruiterPassword,
       hrName: hrName.trim(),
       org: org.trim(),
-      employeeId: cleanEmpId.toUpperCase(),
-      username: cleanUsername,
-      password: generatedPassword,
+      employeeId: cleanEmp,
+      username: cleanEmp.toLowerCase(),
       date: new Date().toISOString().split('T')[0],
       status: 'Active'
     };
@@ -257,7 +281,25 @@ app.post('/api/admin/create-recruiter', async (req, res) => {
   }
 });
 
-// 5. Admin: List All Issued Recruiter Accounts (ID & Password)
+// 6. Admin: List All Issued HR Tokens
+app.get('/api/admin/hr-tokens', async (req, res) => {
+  try {
+    let tokens = [];
+    try {
+      tokens = await HRToken.find().sort({ _id: -1 });
+    } catch {
+      tokens = inMemoryDB.hrTokens;
+    }
+    if (!tokens || tokens.length === 0) {
+      tokens = inMemoryDB.hrTokens;
+    }
+    res.json({ success: true, tokens });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch HR tokens' });
+  }
+});
+
+// Admin: List All Issued Recruiter Accounts (ID & Password)
 app.get('/api/admin/recruiters', async (req, res) => {
   try {
     let accounts = [];
@@ -275,8 +317,7 @@ app.get('/api/admin/recruiters', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// 6. HR / Hiring Manager: Verify Registration Token or Credentials
+// 7. HR / Hiring Manager: Verify Registration Token or Credentials
 app.post('/api/hr/verify-token', async (req, res) => {
   try {
     const { token, username, password } = req.body;
@@ -295,12 +336,20 @@ app.post('/api/hr/verify-token', async (req, res) => {
           (t.username?.toLowerCase() === u || t.employeeId?.toLowerCase() === u) && t.password === p
         );
       }
+      if (!match) {
+        match = inMemoryDB.recruiters.find(r => 
+          (r.username?.toLowerCase() === u || r.employeeId?.toLowerCase() === u || r.recruiterId?.toLowerCase() === u) && r.password === p
+        );
+      }
     } else if (token) {
       const cleanToken = token.trim().toUpperCase();
       try {
         match = await HRToken.findOne({ id: cleanToken });
       } catch {
         match = inMemoryDB.hrTokens.find(t => t.id === cleanToken);
+      }
+      if (!match) {
+        match = inMemoryDB.recruiters.find(r => r.recruiterId === cleanToken);
       }
       if (!match && cleanToken.startsWith('HR-')) {
         match = { hrName: 'Authorized Recruiter', org: 'Enterprise Partner' };
@@ -315,12 +364,17 @@ app.post('/api/hr/verify-token', async (req, res) => {
         hrName: match.hrName, 
         org: match.org,
         employeeId: match.employeeId,
-        username: match.username
+        username: match.username || match.recruiterId
       });
     } else {
       res.status(401).json({ verified: false, error: 'Invalid recruiter credentials or registration ID' });
-=======
-// 6. Recruiter Login (Authenticates with Recruiter ID & Password)
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Verification failed' });
+  }
+});
+
+// 8. Recruiter Login (Authenticates with Recruiter ID & Password)
 app.post('/api/recruiter/login', async (req, res) => {
   try {
     const { recruiterId, password } = req.body;
@@ -342,6 +396,16 @@ app.post('/api/recruiter/login', async (req, res) => {
       account = inMemoryDB.recruiters.find(r => r.recruiterId === cleanId);
     }
 
+    // Also check HR tokens
+    if (!account) {
+      const hr = inMemoryDB.hrTokens.find(t => 
+        (t.id === cleanId || t.employeeId?.toUpperCase() === cleanId || t.username?.toUpperCase() === cleanId) && t.password === cleanPass
+      );
+      if (hr) {
+        account = { recruiterId: hr.id, hrName: hr.hrName, org: hr.org, password: hr.password };
+      }
+    }
+
     if (account && account.password === cleanPass) {
       res.json({
         success: true,
@@ -356,7 +420,6 @@ app.post('/api/recruiter/login', async (req, res) => {
         success: false,
         error: 'Invalid Recruiter ID or Password. Credentials can be generated in Admin Access.'
       });
->>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
     }
   } catch (err) {
     res.status(500).json({ success: false, error: 'Login authentication failed' });
