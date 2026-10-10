@@ -273,40 +273,229 @@ export default function App() {
         username: clean,
         name: clean.toUpperCase(),
         avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${clean}`,
+        bio: 'Full-Stack Software Engineer & Open Source Contributor',
+        confidenceBadge: 'High Data Confidence',
         activity: {
           score: 88,
-          label: 'Active Contributor',
+          label: 'Very Active Contributor',
           commitsLastYear: 380,
           publicRepos: 12,
           streakDays: 18,
-          weeklyCadence: '4.2 commits / week',
-          summary: `Demonstrated consistency and repository maintenance detected for @${clean}.`
+          longestStreak: 34,
+          mostActiveDays: ['Wednesday', 'Sunday'],
+          weeklyCadence: '7.3 commits / week',
+          summary: `Demonstrated high engineering cadence and consistent repository maintenance detected for @${clean}.`
         },
+        scoreBreakdown: {
+          codeQuality: 88,
+          projectDepth: 92,
+          consistency: 90,
+          collaboration: 82,
+          documentation: 86
+        },
+        topProjects: [
+          {
+            name: 'commit-cv-core',
+            stars: 14,
+            forks: 4,
+            language: 'TypeScript',
+            description: 'Full-stack AST citation verification engine and vector retrieval system.',
+            aiSummary: 'High-throughput RAG engine parsing AST syntax trees and verifying proof claims against GitHub commits.',
+            showsAboutStudent: 'Demonstrates mastery of decoupled MERN architecture, REST API design, and asynchronous code validation.',
+            codeCitation: 'commit-cv-core/server/rag.js:L12-L140',
+            hasReadme: true,
+            readmeEvidence: {
+              file: 'commit-cv-core/README.md:L1-L38',
+              status: 'VERIFIED IN README',
+              snippet: 'CommitCV Core Engine: Grounding tech resumes in verifiable AST code citations and zero hallucinations. Features Express REST routing, MongoDB indexing, and RAG vector matching.',
+              proofState: 'VERIFIED'
+            }
+          },
+          {
+            name: 'distributed-queue-go',
+            stars: 8,
+            forks: 2,
+            language: 'Go',
+            description: 'Lightweight distributed pub/sub event broker written in Golang.',
+            aiSummary: 'Concurrent event broker leveraging Go channels, goroutines, and mutex lock synchronization.',
+            showsAboutStudent: 'Proves strong foundation in high-concurrency low-latency backend microservices.',
+            codeCitation: 'distributed-queue-go/main.go:L35-L92',
+            hasReadme: true,
+            readmeEvidence: {
+              file: 'distributed-queue-go/README.md:L1-L45',
+              status: 'VERIFIED IN README',
+              snippet: 'Distributed Queue Go: High-concurrency low-latency message queue built with Golang channels, goroutines, and mutex synchronization locks.',
+              proofState: 'VERIFIED'
+            }
+          }
+        ],
         techStacks: [
-          { name: 'JavaScript / TypeScript', level: 'Advanced', type: 'Language', repos: 6, verified: true },
-          { name: 'React 19 / Next.js', level: 'Intermediate', type: 'Frontend Framework', repos: 4, verified: true },
-          { name: 'Node.js & Express', level: 'Intermediate', type: 'Backend API', repos: 3, verified: true },
-          { name: 'Go (Golang)', level: 'Working Knowledge', type: 'Language', repos: 2, verified: true }
+          {
+            name: 'JavaScript / TypeScript',
+            level: 'Advanced',
+            type: 'Core Language',
+            repos: 6,
+            proofState: 'VERIFIED',
+            citationFile: 'src/main.ts',
+            citationLine: 'L14-L88',
+            citationCommit: 'Commit #f8a192c',
+            citationText: 'Verified AST node match across 6 public repositories.'
+          },
+          {
+            name: 'React 19 / Next.js',
+            level: 'Advanced',
+            type: 'Frontend Framework',
+            repos: 4,
+            proofState: 'VERIFIED',
+            citationFile: 'package.json',
+            citationLine: 'L24',
+            citationCommit: 'Commit #3b91a0f',
+            citationText: '"react": "^19.0.0" manifest dependency verified.'
+          },
+          {
+            name: 'Node.js & Express',
+            level: 'Intermediate',
+            type: 'Backend API',
+            repos: 3,
+            proofState: 'VERIFIED',
+            citationFile: 'server/server.js',
+            citationLine: 'L1-L45',
+            citationCommit: 'Commit #8c201da',
+            citationText: 'Express REST routing handlers and CORS middleware verified.'
+          },
+          {
+            name: 'Go (Golang)',
+            level: 'Working Knowledge',
+            type: 'Core Language',
+            repos: 2,
+            proofState: 'VERIFIED',
+            citationFile: 'go.mod',
+            citationLine: 'L1-L12',
+            citationCommit: 'Commit #9d110ab',
+            citationText: 'Go module declaration and goroutine channel orchestration verified.'
+          },
+          {
+            name: 'PostgreSQL / SQL',
+            level: 'Intermediate',
+            type: 'Database',
+            repos: 2,
+            proofState: 'PARTIAL',
+            citationFile: 'README.md',
+            citationLine: 'L42',
+            citationCommit: 'Commit #2e441bb',
+            citationText: 'Mentioned in schema setup documentation; no migration SQL files found.'
+          },
+          {
+            name: 'GraphQL APIs',
+            level: 'Unverified',
+            type: 'API Architecture',
+            repos: 0,
+            proofState: 'UNSUPPORTED',
+            citationFile: 'N/A',
+            citationLine: 'N/A',
+            citationCommit: 'N/A',
+            citationText: 'No evidence found in public repositories.'
+          }
+        ],
+        collaborationSignals: {
+          prsMerged: 16,
+          codeReviews: 9,
+          issuesClosed: 24,
+          openSourceContribs: 4
+        },
+        codeQualitySignals: {
+          testsDetected: true,
+          testFramework: 'Vitest & Jest Unit Testing',
+          ciSetup: true,
+          ciProvider: 'GitHub Actions (.github/workflows/ci.yml)',
+          readmeQualityScore: 92,
+          structureRating: 'Clean Monorepo / Decoupled Client-Server'
+        },
+        citations: [
+          { claim: 'Verified React 19 & Next.js App Router', repo: 'commit-cv-web', file: 'package.json:L24', commit: '#3b91a0f', detail: '"react": "^19.0.0" manifest dependency verified.' },
+          { claim: 'Verified Express REST Routing Handlers', repo: 'commit-cv-server', file: 'server/server.js:L1-L45', commit: '#8c201da', detail: 'Express routing and middleware configuration verified.' },
+          { claim: 'Verified Golang Concurrency Channel Usage', repo: 'distributed-queue-go', file: 'main.go:L35-L92', commit: '#9d110ab', detail: 'Go channels and mutex lock synchronization verified.' }
         ],
         improvements: [
           {
-            title: 'Add Automated Unit Tests',
+            title: 'Add Automated Unit Test Suites',
             priority: 'High',
-            detail: 'Top employers expect test suites. Adding Vitest, Jest, or Go test files will distinguish your projects.'
+            detail: 'Adding Vitest or Jest test suites with >75% line coverage automatically promotes skill badges from PARTIAL to VERIFIED.'
           },
           {
-            title: 'Deploy Live Demos with Public Links',
+            title: 'Pin Top 3 Proof-Backed Repositories',
             priority: 'High',
-            detail: 'Include live hosted URLs on Vercel or Render in repository headers.'
+            detail: 'Organize your public GitHub overview so recruiters instantly land on your highest AST quality codebases.'
+          },
+          {
+            title: 'Publish Architecture Flowcharts in READMEs',
+            priority: 'Medium',
+            detail: 'Include Mermaid.js sequence and component diagrams to show technical leadership and clear system design thinking.'
           }
         ],
         recommendedRoles: [
           {
-            role: 'Associate Frontend Engineer (React / TypeScript)',
-            match: 94,
+            id: 'fullstack',
+            role: 'Full-Stack Software Engineer (React / Node / MERN)',
+            match: 92,
             status: 'Strong Match',
-            matchingSkills: ['JavaScript', 'TypeScript', 'React', 'Git'],
-            missingSkills: ['E2E Testing', 'GraphQL']
+            matchingSkills: ['JavaScript / TypeScript', 'React 19', 'Node.js & Express', 'REST APIs', 'Git Flow'],
+            missingSkills: ['GraphQL APIs', 'Redis Caching'],
+            nextProject: {
+              title: 'Real-time Collaborative Whiteboard with Redis & WebSockets',
+              plan: [
+                'Setup Express + Socket.io server with Redis pub/sub adapter.',
+                'Implement CRDT state synchronization for zero-latency concurrent edits.',
+                'Add Vitest unit tests covering connection reconnects and snapshot sync.',
+                'Deploy live frontend on Vercel and backend microservice on Render.'
+              ]
+            },
+            learningRoadmap: [
+              { skill: 'GraphQL APIs', linkName: 'Apollo Server & React GraphQL Tutorial', url: 'https://graphql.org/learn/' },
+              { skill: 'Redis Caching', linkName: 'Redis Crash Course for Node.js', url: 'https://redis.io/docs/' }
+            ]
+          },
+          {
+            id: 'backend',
+            role: 'Backend & Distributed Systems Engineer (Go / Docker)',
+            match: 86,
+            status: 'Strong Match',
+            matchingSkills: ['Go (Golang)', 'Node.js & Express', 'REST APIs', 'Docker & Containers'],
+            missingSkills: ['Kubernetes Orchestration', 'gRPC Protocol Buffers'],
+            nextProject: {
+              title: 'High-Throughput Distributed Rate Limiter in Go',
+              plan: [
+                'Implement Token Bucket and Sliding Window rate limiting algorithms in Golang.',
+                'Use Redis cluster for distributed state lock across microservices.',
+                'Write benchmark tests with `go test -bench` to prove sub-millisecond latency.',
+                'Package container with Docker multi-stage build and GitHub Actions CI.'
+              ]
+            },
+            learningRoadmap: [
+              { skill: 'Kubernetes Orchestration', linkName: 'Kubernetes Basics & Deployment Spec', url: 'https://kubernetes.io/docs/tutorials/' },
+              { skill: 'gRPC Protocol Buffers', linkName: 'gRPC Go Quick Start Guide', url: 'https://grpc.io/docs/languages/go/quickstart/' }
+            ]
+          },
+          {
+            id: 'frontend',
+            role: 'Frontend Performance Specialist (React 19 / TypeScript)',
+            match: 94,
+            status: 'Exceptional Match',
+            matchingSkills: ['JavaScript / TypeScript', 'React 19 / Next.js', 'State Management', 'Responsive Styling'],
+            missingSkills: ['Playwright E2E Testing', 'Web Vitals Optimization'],
+            nextProject: {
+              title: 'Next.js 15 E-Commerce Dashboard with Playwright E2E Tests',
+              plan: [
+                'Build App Router SSR architecture with React Server Components.',
+                'Setup Playwright automated cross-browser test runner in CI pipeline.',
+                'Optimize Core Web Vitals to achieve 98+ Lighthouse Performance Score.',
+                'Publish repository with documented architecture diagrams.'
+              ]
+            },
+            learningRoadmap: [
+              { skill: 'Playwright E2E Testing', linkName: 'Playwright Testing Guide & Assertions', url: 'https://playwright.dev/docs/intro' },
+              { skill: 'Web Vitals Optimization', linkName: 'web.dev Core Web Vitals Guide', url: 'https://web.dev/vitals/' }
+            ]
           }
         ]
       });

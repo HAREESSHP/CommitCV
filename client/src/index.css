@@ -528,3 +528,12 @@ a {
 .animate-fall-card {
   animation: fallIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+@keyframes spinIcon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-icon {
+  animation: spinIcon 1s linear infinite;
+}
