@@ -1901,33 +1901,33 @@ export default function App() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
                 <div style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '38px',
+                  height: '38px',
                   borderRadius: '50%',
                   background: 'var(--text)',
                   color: 'var(--bg)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontWeight: 800,
-                  fontSize: '1rem',
+                  fontWeight: 900,
+                  fontSize: '1.1rem',
                   fontFamily: 'var(--font-mono)'
                 }}>
                   C
                 </div>
-                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em', color: 'var(--text)' }}>
                   CommitCV
                 </span>
               </div>
 
-              <p style={{ fontSize: '0.875rem', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '1.5rem', maxWidth: '280px' }}>
+              <p style={{ fontSize: '0.925rem', color: 'var(--text)', fontWeight: 500, lineHeight: 1.65, marginBottom: '1.5rem', maxWidth: '290px', opacity: 0.9 }}>
                 Your commits are your CV. Grounding tech resumes in verifiable AST code citations and zero hallucinations.
               </p>
 
               {/* Social Buttons */}
               <div style={{ display: 'flex', gap: '0.75rem' }}>
                 <a href="https://instagram.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="Instagram">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                     <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
@@ -1948,20 +1948,20 @@ export default function App() {
 
             {/* Column 2: Location */}
             <div>
-              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--text)' }}>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text)', letterSpacing: '-0.01em' }}>
                 Location
               </h4>
-              <p style={{ fontSize: '0.95rem', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '0.5rem' }}>
+              <p style={{ fontSize: '1rem', color: 'var(--text)', fontWeight: 600, lineHeight: 1.6, marginBottom: '0.4rem' }}>
                 Hyderabad, Telangana, India
               </p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
                 HQ • Remote First Engineering
               </p>
             </div>
 
             {/* Column 3: Quick Links */}
             <div>
-              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--text)' }}>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text)', letterSpacing: '-0.01em' }}>
                 Quick Links
               </h4>
               <nav style={{ display: 'flex', flexDirection: 'column' }}>
@@ -2014,14 +2014,14 @@ export default function App() {
                     cursor: 'pointer',
                     color: 'var(--text)',
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
                     padding: 0
                   }}
                 >
                   <span style={{
-                    width: '7px',
-                    height: '7px',
+                    width: '8px',
+                    height: '8px',
                     borderRadius: '50%',
                     background: 'var(--accent)',
                     boxShadow: '0 0 8px var(--accent)'
@@ -2033,7 +2033,7 @@ export default function App() {
 
             {/* Column 4: Legal */}
             <div>
-              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', color: 'var(--text)' }}>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text)', letterSpacing: '-0.01em' }}>
                 Legal
               </h4>
               <nav style={{ display: 'flex', flexDirection: 'column' }}>
@@ -2060,7 +2060,7 @@ export default function App() {
             gap: '1.25rem',
             boxShadow: '0 8px 30px rgba(0,0,0,0.08)'
           }}>
-            <div style={{ fontSize: '0.875rem', color: 'var(--muted)', fontWeight: 500 }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>
               © 2026 CommitCV Platform. All rights reserved.
             </div>
 
@@ -2073,21 +2073,21 @@ export default function App() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  padding: '0.45rem 1rem',
+                  padding: '0.5rem 1.1rem',
                   borderRadius: 'var(--radius-pill)',
                   border: '1px solid var(--border)',
                   background: 'var(--surface)',
                   color: 'var(--text)',
                   fontFamily: 'var(--font-body)',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all 150ms ease'
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
               >
-                <ShieldCheck size={15} style={{ color: 'var(--accent)' }} />
+                <ShieldCheck size={16} style={{ color: 'var(--accent)' }} />
                 <span>Admin Access</span>
               </button>
             </div>
@@ -2096,15 +2096,16 @@ export default function App() {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem',
-              color: 'var(--muted)',
+              gap: '0.6rem',
+              fontSize: '0.9rem',
+              color: 'var(--text)',
+              fontWeight: 600,
               flexWrap: 'wrap'
             }}>
               <span>Designed & Developed by</span>
-              <span className="dev-badge-pill" style={{ cursor: 'default' }}>
-                <span className="dev-dot-blue" style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)' }} />
-                <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>TEAM KANYARASI</span>
+              <span className="dev-badge-pill" style={{ cursor: 'default', padding: '0.35rem 0.85rem' }}>
+                <span className="dev-dot-blue" style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)', width: '8px', height: '8px' }} />
+                <span style={{ fontWeight: 800, letterSpacing: '0.04em' }}>TEAM KANYARASI</span>
               </span>
             </div>
           </div>

@@ -352,16 +352,20 @@ a {
 }
 
 .footer-nav-link {
-  font-size: 0.9rem;
+  font-size: 0.925rem;
+  font-weight: 600;
   color: var(--muted);
-  transition: color 150ms ease;
+  transition: all 150ms ease;
   cursor: pointer;
   display: block;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
 }
 
 .footer-nav-link:hover {
   color: var(--text);
+  font-weight: 700;
+  transform: translateX(3px);
 }
 
 .dev-badge-pill {

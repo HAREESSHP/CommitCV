@@ -16,14 +16,9 @@ function getHeaders() {
   }
   return headers;
 }
-
-/**
- * Fetch GitHub user profile and repositories
- */
 export async function fetchGitHubUserData(username) {
   const cleanUsername = username.trim().toLowerCase();
 
-  // Check cache (10 min TTL)
   const cached = cache.get(cleanUsername);
   if (cached && (Date.now() - cached.timestamp < 10 * 60 * 1000)) {
     return cached.data;
@@ -57,10 +52,6 @@ export async function fetchGitHubUserData(username) {
     throw err;
   }
 }
-
-/**
- * Fetch file content from repository (e.g., package.json, go.mod, etc.)
- */
 export async function fetchRepoFile(owner, repo, path) {
   try {
     const headers = getHeaders();
