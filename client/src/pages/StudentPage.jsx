@@ -178,7 +178,7 @@ export default function StudentPage({
               disabled={analyzing}
               style={{ padding: '0.5rem 0.6rem 0.5rem 1.35rem', fontSize: '0.9rem' }}
             >
-              <span>{analyzing ? 'Scanning Repos...' : 'Generate Dossier'}</span>
+              <span>{analyzing ? 'Scanning Repos...' : 'GENERATE RESPONSE'}</span>
               <div className="btn-pill-arrow">
                 <ArrowRight size={14} />
               </div>
@@ -319,8 +319,14 @@ export default function StudentPage({
                     <h4 style={{ margin: '0 0 0.75rem 0', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.1rem' }}>
                       CommitCV Zero-Hallucination AST Grounding Methodology
                     </h4>
-                    <p style={{ margin: '0 0 0.75rem 0', color: 'var(--muted)' }}>
-                      Every technical claim is validated by traversing public AST syntax trees, dependency manifests (`package.json`, `go.mod`, `Dockerfile`), and verified git commit timestamps. If evidence is lacking, the status remains <code style={{ color: 'var(--text)', background: 'var(--bg)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>UNSUPPORTED</code> instead of hallucinating qualifications.
+                    <p style={{ margin: '0 0 0.85rem 0', color: 'var(--muted)', lineHeight: 1.65 }}>
+                      Every technical claim is validated by traversing public AST syntax trees, dependency manifests (
+                      <code style={{ color: 'var(--accent)', background: 'var(--neon-bg)', padding: '0.15rem 0.45rem', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', border: '1px solid var(--accent)' }}>package.json</code>,{' '}
+                      <code style={{ color: 'var(--accent)', background: 'var(--neon-bg)', padding: '0.15rem 0.45rem', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', border: '1px solid var(--accent)' }}>go.mod</code>,{' '}
+                      <code style={{ color: 'var(--accent)', background: 'var(--neon-bg)', padding: '0.15rem 0.45rem', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', border: '1px solid var(--accent)' }}>Dockerfile</code>
+                      ), and verified git commit timestamps. If evidence is lacking, the status remains{' '}
+                      <code style={{ color: 'var(--proof-unsupported)', background: 'var(--proof-unsupported-bg)', padding: '0.15rem 0.55rem', borderRadius: 'var(--radius-pill)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', border: '1px solid var(--border)', fontWeight: 700 }}>UNSUPPORTED</code>{' '}
+                      instead of hallucinating qualifications.
                     </p>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
                       <div style={{ background: 'var(--bg)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
