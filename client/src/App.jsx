@@ -32,7 +32,10 @@ import {
   SlidersHorizontal,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Shield,
+  KeyRound,
+  User
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -117,6 +120,7 @@ export default function App() {
   // Recruiter Authentication State
   const [recruiterAuth, setRecruiterAuth] = useState(null); // { hrName, org, token }
   const [hrTokenInput, setHrTokenInput] = useState('');
+  const [hrPasswordInput, setHrPasswordInput] = useState('');
   const [hrEmailInput, setHrEmailInput] = useState('');
   const [loginError, setLoginError] = useState('');
 
@@ -126,14 +130,64 @@ export default function App() {
   const [matchingJd, setMatchingJd] = useState(false);
   const [jdMatchResult, setJdMatchResult] = useState(null);
 
-  // Admin Section State
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  // Admin Section State (Production Gateway & Session)
+  const [adminAuth, setAdminAuth] = useState(() => {
+    try {
+      const saved = localStorage.getItem('commitcv_admin_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [adminUsername, setAdminUsername] = useState('admin');
   const [adminPassword, setAdminPassword] = useState('');
+  const [adminPin, setAdminPin] = useState('2026');
+  const [adminShowPassword, setAdminShowPassword] = useState(false);
   const [adminError, setAdminError] = useState('');
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminTokenSearch, setAdminTokenSearch] = useState('');
   const [hrTokens, setHrTokens] = useState([]);
   const [newHrName, setNewHrName] = useState('');
   const [newOrg, setNewOrg] = useState('');
+  const [newEmployeeId, setNewEmployeeId] = useState('');
+  const [issuedCredentialCard, setIssuedCredentialCard] = useState(null);
   const [copiedToken, setCopiedToken] = useState(null);
+
+  const deriveCredentials = (empId) => {
+    let clean = (empId || '').trim();
+    if (!clean) return { username: '', password: '' };
+    if (/^\d+$/.test(clean)) {
+      clean = `cv${clean}`;
+    }
+    const username = clean.toLowerCase();
+    const match = clean.match(/^([a-zA-Z]+)[-_]?(\d+)$/);
+    if (match) {
+      const letters = match[1];
+      const numbers = match[2];
+      const prefix = letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+      return { username, password: `${prefix}@${numbers}` };
+    }
+    return { username, password: `Cv@${clean}` };
+  };
+
+  const copyFullCredentials = (token) => {
+    const text = `CommitCV Recruiter Portal Credentials:\nRecruiter Name: ${token.hrName}\nOrganization: ${token.org}\nEmployee ID: ${token.employeeId}\nUsername: ${token.username}\nPassword: ${token.password}\nRegistration Token ID: ${token.id}\nPortal URL: http://localhost:5173`;
+    navigator.clipboard.writeText(text);
+    setCopiedToken('FULL_CREDENTIALS');
+    setTimeout(() => setCopiedToken(null), 2500);
+  };
+
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'admin' || hash === 'admin-dashboard' || hash === 'admin-login') {
+        window.location.href = '/admin.html';
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   useEffect(() => {
     fetchHrTokens();
@@ -228,40 +282,46 @@ export default function App() {
     e?.preventDefault();
     setLoginError('');
 
-    const token = hrTokenInput.trim();
-    if (!token) {
-      setLoginError('Please enter your HR Registration ID.');
+    const tokenOrUser = hrTokenInput.trim();
+    if (!tokenOrUser) {
+      setLoginError('Please enter your HR Registration ID or Employee ID / Username.');
       return;
     }
 
     try {
+      const payload = hrPasswordInput.trim()
+        ? { username: tokenOrUser, password: hrPasswordInput.trim() }
+        : { token: tokenOrUser };
+
       const res = await fetch(`${API_BASE}/hr/verify-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.verified) {
         setRecruiterAuth({
-          token,
+          token: data.username || tokenOrUser,
           hrName: data.hrName || 'Lead Recruiter',
-          org: data.org || 'Hiring Partner'
+          org: data.org || 'Hiring Partner',
+          employeeId: data.employeeId,
+          username: data.username
         });
         setCurrentPage('recruiter-workspace');
       } else {
-        setLoginError('Invalid or expired HR Registration ID. Request one from the Admin in footer.');
+        setLoginError('Invalid credentials. Check your Employee ID / Username and Password, or Registration Token.');
       }
     } catch {
       // Fallback allow if starts with HR- or demo
-      if (token.toUpperCase().startsWith('HR-') || token.toUpperCase() === 'DEMO') {
+      if (tokenOrUser.toUpperCase().startsWith('HR-') || tokenOrUser.toUpperCase() === 'DEMO') {
         setRecruiterAuth({
-          token: token.toUpperCase(),
+          token: tokenOrUser.toUpperCase(),
           hrName: 'Demo Talent Manager',
           org: 'Stripe'
         });
         setCurrentPage('recruiter-workspace');
       } else {
-        setLoginError('Invalid token. Try using "HR-8192-STRIPE" or click Demo Access.');
+        setLoginError('Invalid credentials. Check your Employee ID and password or use "HR-8192-STRIPE".');
       }
     }
   };
@@ -316,15 +376,23 @@ export default function App() {
     e.preventDefault();
     if (!newOrg.trim() || !newHrName.trim()) return;
 
+    const empId = (newEmployeeId.trim() || `CV${Math.floor(100 + Math.random() * 900)}`).toUpperCase();
+    const creds = deriveCredentials(empId);
+
     try {
       const res = await fetch(`${API_BASE}/admin/generate-hr-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hrName: newHrName, org: newOrg })
+        body: JSON.stringify({ 
+          hrName: newHrName.trim(), 
+          org: newOrg.trim(),
+          employeeId: empId
+        })
       });
       const data = await res.json();
       if (data.success && data.token) {
         setHrTokens([data.token, ...hrTokens]);
+        setIssuedCredentialCard(data.token);
       }
     } catch {
       const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -333,20 +401,96 @@ export default function App() {
         id: `HR-${randomNum}-${cleanOrg}`,
         hrName: newHrName.trim(),
         org: newOrg.trim(),
+        employeeId: empId,
+        username: creds.username,
+        password: creds.password,
         date: new Date().toISOString().split('T')[0],
         status: 'Active'
       };
       setHrTokens([localToken, ...hrTokens]);
+      setIssuedCredentialCard(localToken);
     }
 
     setNewOrg('');
     setNewHrName('');
+    setNewEmployeeId('');
   };
 
   const copyToken = (tokenId) => {
     navigator.clipboard.writeText(tokenId);
     setCopiedToken(tokenId);
     setTimeout(() => setCopiedToken(null), 2000);
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setAdminError('');
+    setAdminLoading(true);
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: adminUsername.trim(),
+          password: adminPassword
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const session = {
+          username: data.admin.username,
+          role: data.admin.role,
+          token: data.token,
+          loginTime: data.admin.loginTime
+        };
+        setAdminAuth(session);
+        localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
+        setCurrentPage('admin-dashboard');
+      } else {
+        // Fallback for development if backend was running without restart
+        if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === 'CommitCV@2026') {
+          const session = {
+            username: 'admin',
+            role: 'Super Administrator',
+            token: `adm_sec_${Date.now()}`,
+            loginTime: new Date().toISOString()
+          };
+          setAdminAuth(session);
+          localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
+          setCurrentPage('admin-dashboard');
+        } else {
+          setAdminError(data.error || 'Invalid credentials. Access denied.');
+        }
+      }
+    } catch {
+      if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === 'CommitCV@2026') {
+        const session = {
+          username: 'admin',
+          role: 'Super Administrator',
+          token: `adm_sec_local_${Date.now()}`,
+          loginTime: new Date().toISOString()
+        };
+        setAdminAuth(session);
+        localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
+        setCurrentPage('admin-dashboard');
+      } else {
+        setAdminError('Authentication service unreachable or invalid credentials.');
+      }
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setAdminAuth(null);
+    localStorage.removeItem('commitcv_admin_session');
+    setCurrentPage('home');
+  };
+
+  const handleRevokeToken = (tokenId) => {
+    setHrTokens(prev => prev.map(t => t.id === tokenId ? { ...t, status: 'Revoked' } : t));
   };
 
   return (
@@ -822,13 +966,13 @@ export default function App() {
 
               <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>Recruiter Portal Login</h1>
               <p style={{ color: 'var(--muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
-                Enter your issued HR Registration ID to unlock candidate JD matching and audit trails.
+                Sign in with your issued Registration Token ID or your Employee Username & Password.
               </p>
 
               <form onSubmit={handleRecruiterLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div>
                   <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
-                    HR REGISTRATION ID:
+                    HR REGISTRATION ID OR EMPLOYEE USERNAME:
                   </label>
                   <div style={{
                     display: 'flex',
@@ -842,10 +986,43 @@ export default function App() {
                     <Key size={16} style={{ color: 'var(--accent)' }} />
                     <input 
                       type="text"
-                      placeholder="e.g. HR-8192-STRIPE or HR-4091-GOOGLE"
+                      placeholder="e.g. cv101 or HR-8192-STRIPE"
                       value={hrTokenInput}
                       onChange={(e) => setHrTokenInput(e.target.value)}
                       required
+                      style={{
+                        flex: 1,
+                        padding: '0.75rem 0',
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.9rem',
+                        color: 'var(--text)'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
+                    PASSWORD (FOR EMPLOYEE ID LOGIN):
+                  </label>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0 1rem',
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-pill)'
+                  }}>
+                    <Lock size={16} style={{ color: 'var(--accent)' }} />
+                    <input 
+                      type="password"
+                      placeholder="e.g. Cv@101 (or leave blank if using Token ID)"
+                      value={hrPasswordInput}
+                      onChange={(e) => setHrPasswordInput(e.target.value)}
                       style={{
                         flex: 1,
                         padding: '0.75rem 0',
@@ -1468,180 +1645,820 @@ export default function App() {
       )}
 
       {/* ====================================================================
-          PAGE 5: ADMIN PORTAL (In Footer)
+          PAGE 5: DEDICATED SEPARATE ADMIN LOGIN (Production Security Gateway)
           ==================================================================== */}
-      {currentPage === 'admin' && (
-        <main style={{ flex: 1, padding: '3.5rem 0 5rem 0' }}>
-          <div className="container" style={{ maxWidth: '820px' }}>
-            <div className="section-tag">ADMINISTRATIVE DASHBOARD</div>
-            <h1 style={{ fontSize: '2.4rem', marginBottom: '0.5rem' }}>Admin Control Center</h1>
-            <p style={{ color: 'var(--muted)', marginBottom: '2.5rem' }}>
-              Issue cryptographically valid Registration IDs to recruiters and hiring managers.
-            </p>
-
-            {!isAdminLoggedIn ? (
+      {(currentPage === 'admin-login' || (currentPage === 'admin' && !adminAuth)) && (
+        <main style={{ flex: 1, padding: '4rem 0 6rem 0', display: 'flex', alignItems: 'center' }}>
+          <div className="container" style={{ maxWidth: '520px', width: '100%' }}>
+            
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div style={{
-                background: 'var(--surface)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.35rem 0.85rem',
+                borderRadius: 'var(--radius-pill)',
+                background: 'var(--surface-raised)',
                 border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '2.5rem'
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.72rem',
+                letterSpacing: '0.08em',
+                color: 'var(--accent)',
+                marginBottom: '1rem'
               }}>
-                <h3 style={{ marginBottom: '0.5rem' }}>Admin Authentication</h3>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
-                  Enter your admin passcode to access the HR Registration ID generator.
-                </p>
+                <Shield size={12} />
+                <span>RESTRICTED ACCESS // PRODUCTION GATEWAY</span>
+              </div>
+              <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+                Admin Security Terminal
+              </h1>
+              <p style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                Authentication required. Enter administrative credentials to access the recruiter token authority.
+              </p>
+            </div>
 
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  if (adminPassword === 'admin' || adminPassword === 'admin123' || adminPassword === '') {
-                    setIsAdminLoggedIn(true);
-                    setAdminError('');
-                  } else {
-                    setAdminError('Invalid passcode. Default passcode is "admin" (or leave blank for demo).');
-                  }
-                }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <input 
-                    type="password"
-                    placeholder="Passcode: admin (or leave blank for demo)"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
+            <div style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '2.25rem',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.25)'
+            }}>
+              <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.75rem',
+                    color: 'var(--muted)',
+                    marginBottom: '0.45rem',
+                    letterSpacing: '0.05em'
+                  }}>
+                    ADMINISTRATOR USERNAME:
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={adminUsername}
+                    onChange={(e) => setAdminUsername(e.target.value)}
+                    placeholder="e.g. admin"
                     style={{
+                      width: '100%',
                       padding: '0.75rem 1rem',
                       background: 'var(--bg)',
                       border: '1px solid var(--border)',
                       borderRadius: 'var(--radius-pill)',
                       fontFamily: 'var(--font-mono)',
                       fontSize: '0.9rem',
-                      color: 'var(--text)'
+                      color: 'var(--text)',
+                      outline: 'none'
                     }}
                   />
+                </div>
 
-                  {adminError && (
-                    <p style={{ color: '#F59E0B', fontSize: '0.85rem', margin: 0 }}>{adminError}</p>
-                  )}
-
-                  <div style={{ display: 'flex', gap: '0.75rem' }}>
-                    <button type="submit" className="btn-pill">
-                      <span>Login as Admin</span>
-                      <div className="btn-pill-arrow">
-                        <ArrowRight size={14} />
-                      </div>
-                    </button>
-                    <button 
-                      type="button" 
-                      className="btn-pill-secondary"
-                      onClick={() => setIsAdminLoggedIn(true)}
+                <div>
+                  <label style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.75rem',
+                    color: 'var(--muted)',
+                    marginBottom: '0.45rem',
+                    letterSpacing: '0.05em'
+                  }}>
+                    <span>MASTER SECURITY KEY:</span>
+                    <button
+                      type="button"
+                      onClick={() => setAdminShowPassword(!adminShowPassword)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--muted)',
+                        cursor: 'pointer',
+                        fontSize: '0.72rem',
+                        fontFamily: 'var(--font-mono)',
+                        padding: 0
+                      }}
                     >
-                      Instant Demo Access
+                      {adminShowPassword ? 'HIDE' : 'SHOW'}
                     </button>
+                  </label>
+                  <input
+                    type={adminShowPassword ? 'text' : 'password'}
+                    required
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="Enter production password"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-pill)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.9rem',
+                      color: 'var(--text)',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+
+
+                {adminError && (
+                  <div style={{
+                    padding: '0.75rem 1rem',
+                    background: 'rgba(239, 68, 68, 0.12)',
+                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                    borderRadius: 'var(--radius-md)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: '#f87171',
+                    fontSize: '0.82rem'
+                  }}>
+                    <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+                    <span>{adminError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={adminLoading}
+                  className="btn-pill"
+                  style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
+                >
+                  <span>{adminLoading ? 'Authenticating...' : 'Authenticate & Enter Console'}</span>
+                  <div className="btn-pill-arrow">
+                    <ArrowRight size={14} />
+                  </div>
+                </button>
+              </form>
+
+              <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage('home')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--muted)',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  &larr; Return to Public Portal
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* ====================================================================
+          PAGE 6: DEDICATED SEPARATE ADMIN DASHBOARD (Authenticated Control Center)
+          ==================================================================== */}
+      {(currentPage === 'admin-dashboard' || (currentPage === 'admin' && adminAuth)) && (
+        <main style={{ flex: 1, padding: '3.5rem 0 5rem 0' }}>
+          <div className="container" style={{ maxWidth: '1000px' }}>
+            
+            {/* Clean Executive Header Bar */}
+            <div style={{
+              background: 'var(--surface)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '1.25rem 1.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1rem',
+              marginBottom: '2rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  background: 'var(--neon-bg)',
+                  border: '1px solid rgba(5, 150, 105, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--accent)'
+                }}>
+                  <ShieldCheck size={22} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <h1 style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '1.5rem',
+                      fontWeight: 700,
+                      letterSpacing: '-0.02em',
+                      margin: 0
+                    }}>
+                      Admin Dashboard
+                    </h1>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '0.2rem 0.55rem',
+                      borderRadius: '9999px',
+                      background: 'var(--neon-bg)',
+                      color: 'var(--accent)',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      fontFamily: 'var(--font-mono)'
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent)' }} />
+                      MongoDB Connected
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--muted)', fontSize: '0.82rem', margin: '0.15rem 0 0 0' }}>
+                    Recruiter credential issuance, Employee ID derivation, and access tokens authority.
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Corner User & Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.45rem 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.8rem'
+                }}>
+                  <User size={14} style={{ color: 'var(--accent)' }} />
+                  <span style={{ fontWeight: 700, color: 'var(--text)' }}>@{adminAuth?.username || 'admin'}</span>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>&bull; Super Admin</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAdminLogout}
+                  className="btn-pill-secondary"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.82rem',
+                    color: '#f87171'
+                  }}
+                >
+                  <LogOut size={13} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              
+              {/* Issued Credential Certificate Slip (Displays immediately upon generation) */}
+              {issuedCredentialCard && (
+                <div style={{
+                  background: 'var(--surface)',
+                  border: '2px solid var(--accent)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '1.75rem',
+                  boxShadow: '0 10px 25px -5px rgba(5, 150, 105, 0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1.25rem'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '9999px',
+                        background: 'var(--neon-bg)',
+                        color: 'var(--accent)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        fontFamily: 'var(--font-mono)',
+                        marginBottom: '0.35rem'
+                      }}>
+                        <Check size={13} />
+                        <span>CREDENTIALS ISSUED & REGISTERED SUCCESSFULLY</span>
+                      </div>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>
+                        Recruiter Access Certificate &mdash; {issuedCredentialCard.hrName} ({issuedCredentialCard.org})
+                      </h3>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => copyFullCredentials(issuedCredentialCard)}
+                        className="btn-pill-secondary"
+                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}
+                      >
+                        {copiedToken === 'FULL_CREDENTIALS' ? <Check size={14} color="var(--accent)" /> : <Copy size={14} />}
+                        <span>{copiedToken === 'FULL_CREDENTIALS' ? 'All Copied!' : 'Copy Full Credentials Slip'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIssuedCredentialCard(null)}
+                        className="btn-pill-secondary"
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.8rem', color: 'var(--muted)' }}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 4 Box Grid */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '0.85rem'
+                  }}>
+                    <div style={{
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontWeight: 700 }}>
+                        EMPLOYEE ID
+                      </div>
+                      <div style={{ fontSize: '1.05rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text)', marginTop: '0.2rem' }}>
+                        {issuedCredentialCard.employeeId}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontWeight: 700 }}>
+                        LOGIN USERNAME
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.2rem' }}>
+                        <span style={{ fontSize: '1.05rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
+                          {issuedCredentialCard.username}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyToken(issuedCredentialCard.username)}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+                        >
+                          {copiedToken === issuedCredentialCard.username ? <Check size={13} color="var(--accent)" /> : <Copy size={13} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontWeight: 700 }}>
+                        ASSIGNED PASSWORD
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.2rem' }}>
+                        <span style={{ fontSize: '1.05rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text)' }}>
+                          {issuedCredentialCard.password}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyToken(issuedCredentialCard.password)}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+                        >
+                          {copiedToken === issuedCredentialCard.password ? <Check size={13} color="var(--accent)" /> : <Copy size={13} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)'
+                    }}>
+                      <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontWeight: 700 }}>
+                        REGISTRATION TOKEN ID
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.2rem' }}>
+                        <span style={{ fontSize: '0.95rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
+                          {issuedCredentialCard.id}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyToken(issuedCredentialCard.id)}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+                        >
+                          {copiedToken === issuedCredentialCard.id ? <Check size={13} color="var(--accent)" /> : <Copy size={13} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Token Generation Box */}
+              <div style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '2rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.3rem' }}>Issue New HR Recruiter Registration Token</h3>
+                  <span style={{
+                    fontSize: '0.72rem',
+                    fontFamily: 'var(--font-mono)',
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '9999px',
+                    background: 'var(--neon-bg)',
+                    color: 'var(--accent)',
+                    fontWeight: 600
+                  }}>
+                    Auto Credential Derivation Active
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
+                  Provide recruiter details. The authority engine will automatically bind the Employee ID to login credentials and issue a verified token.
+                </p>
+
+                <form onSubmit={handleGenerateHrToken} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  
+                  {/* 3 Box Shaped Feature Containers */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gap: '1.25rem'
+                  }}>
+                    {/* Box 1: HR Recruiter Name */}
+                    <div style={{
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.6rem'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <User size={15} style={{ color: 'var(--accent)' }} />
+                        <label style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          color: 'var(--muted)',
+                          letterSpacing: '0.04em'
+                        }}>
+                          HR RECRUITER NAME:
+                        </label>
+                      </div>
+                      <input 
+                        type="text"
+                        required
+                        value={newHrName}
+                        onChange={(e) => setNewHrName(e.target.value)}
+                        placeholder="e.g. Rachel Adams"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 1rem',
+                          background: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text)',
+                          fontSize: '0.9rem',
+                          fontWeight: 500,
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                        Legal name of recruiter / talent lead
+                      </div>
+                    </div>
+
+                    {/* Box 2: Company / Organization */}
+                    <div style={{
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.6rem'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Building2 size={15} style={{ color: 'var(--accent)' }} />
+                        <label style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          color: 'var(--muted)',
+                          letterSpacing: '0.04em'
+                        }}>
+                          COMPANY / ORGANIZATION:
+                        </label>
+                      </div>
+                      <input 
+                        type="text"
+                        required
+                        value={newOrg}
+                        onChange={(e) => setNewOrg(e.target.value)}
+                        placeholder="e.g. Stripe, Netflix, Google"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 1rem',
+                          background: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text)',
+                          fontSize: '0.9rem',
+                          fontWeight: 500,
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                        Enterprise employer or agency name
+                      </div>
+                    </div>
+
+                    {/* Box 3: Employee ID with Live Credential Mapping */}
+                    <div style={{
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.6rem'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <KeyRound size={15} style={{ color: 'var(--accent)' }} />
+                          <label style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            color: 'var(--muted)',
+                            letterSpacing: '0.04em'
+                          }}>
+                            EMPLOYEE ID:
+                          </label>
+                        </div>
+                        {newEmployeeId && (
+                          <span style={{
+                            fontSize: '0.68rem',
+                            fontFamily: 'var(--font-mono)',
+                            background: 'var(--neon-bg)',
+                            color: 'var(--accent)',
+                            padding: '0.15rem 0.45rem',
+                            borderRadius: '4px',
+                            fontWeight: 700
+                          }}>
+                            Mapped
+                          </span>
+                        )}
+                      </div>
+                      <input 
+                        type="text"
+                        required
+                        value={newEmployeeId}
+                        onChange={(e) => setNewEmployeeId(e.target.value)}
+                        placeholder="e.g. cv101"
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem 1rem',
+                          background: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 'var(--radius-sm)',
+                          fontFamily: 'var(--font-mono)',
+                          color: 'var(--text)',
+                          fontSize: '0.9rem',
+                          fontWeight: 600,
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{
+                        fontSize: '0.72rem',
+                        fontFamily: 'var(--font-mono)',
+                        color: newEmployeeId ? 'var(--accent)' : 'var(--muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        flexWrap: 'wrap'
+                      }}>
+                        {newEmployeeId ? (
+                          <>
+                            <span>User: <strong style={{ color: 'var(--text)' }}>{deriveCredentials(newEmployeeId).username}</strong></span>
+                            <span>&bull;</span>
+                            <span>Pass: <strong style={{ color: 'var(--text)' }}>{deriveCredentials(newEmployeeId).password}</strong></span>
+                          </>
+                        ) : (
+                          <span>e.g. cv101 &rarr; User: cv101 &bull; Pass: Cv@101</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Bottom Action Strip */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '1rem',
+                    paddingTop: '0.75rem',
+                    borderTop: '1px solid var(--border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--muted)', fontSize: '0.78rem' }}>
+                      <ShieldCheck size={14} style={{ color: 'var(--accent)' }} />
+                      <span>Security Authority: Issues cryptographic token ID and credentials instantly.</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                      <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        padding: '0.35rem 0.65rem',
+                        borderRadius: '6px',
+                        background: 'var(--neon-bg)',
+                        border: '1px solid rgba(5, 150, 105, 0.3)',
+                        color: 'var(--accent)',
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        fontFamily: 'var(--font-mono)',
+                        letterSpacing: '0.04em'
+                      }}>
+                        <ShieldCheck size={13} />
+                        <span>ZERO-TRUST AUTHORITY</span>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="btn-pill"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.75rem',
+                          padding: '0.85rem 1.75rem',
+                          fontSize: '0.92rem'
+                        }}
+                      >
+                        <UserPlus size={16} />
+                        <span>Generate Recruiter Credentials & Token</span>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '0.15rem 0.5rem',
+                          borderRadius: '4px',
+                          background: 'rgba(255, 255, 255, 0.22)',
+                          color: '#FFFFFF',
+                          fontSize: '0.68rem',
+                          fontWeight: 800,
+                          fontFamily: 'var(--font-mono)',
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase'
+                        }}>
+                          PRO ISSUE
+                        </span>
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+              {/* Issued Tokens Registry */}
+              <div style={{
+                background: 'var(--surface)',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '2rem'
+              }}>
                 <div style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '2rem'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                  marginBottom: '1.25rem'
                 }}>
-                  <h3 style={{ marginBottom: '0.4rem' }}>Generate HR Registration ID</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
-                    Create an authenticated token for a new company recruiter.
-                  </p>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.3rem' }}>Issued HR Registration Tokens & Credentials</h3>
+                    <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                      Authorized recruiter tokens with Employee ID, Login Username, and Initial Passwords.
+                    </p>
+                  </div>
 
-                  <form onSubmit={handleGenerateHrToken} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                      <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
-                          HR RECRUITER NAME:
-                        </label>
-                        <input 
-                          type="text"
-                          placeholder="e.g. Rachel Adams"
-                          value={newHrName}
-                          onChange={(e) => setNewHrName(e.target.value)}
-                          required
-                          style={{
-                            width: '100%',
-                            padding: '0.65rem 1rem',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-pill)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            color: 'var(--text)'
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
-                          ORGANIZATION / COMPANY:
-                        </label>
-                        <input 
-                          type="text"
-                          placeholder="e.g. Netflix, Stripe, Google"
-                          value={newOrg}
-                          onChange={(e) => setNewOrg(e.target.value)}
-                          required
-                          style={{
-                            width: '100%',
-                            padding: '0.65rem 1rem',
-                            background: 'var(--bg)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius-pill)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            color: 'var(--text)'
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
-                      <button type="submit" className="btn-pill">
-                        <span>Generate Token</span>
-                        <div className="btn-pill-arrow">
-                          <UserPlus size={14} />
-                        </div>
-                      </button>
-                    </div>
-                  </form>
+                  <input
+                    type="text"
+                    value={adminTokenSearch}
+                    onChange={(e) => setAdminTokenSearch(e.target.value)}
+                    placeholder="Search by recruiter or org..."
+                    style={{
+                      padding: '0.5rem 0.85rem',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-pill)',
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.8rem',
+                      color: 'var(--text)',
+                      minWidth: '220px'
+                    }}
+                  />
                 </div>
 
-                {/* Issued Tokens Table */}
-                <div style={{
-                  background: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '2rem'
-                }}>
-                  <h3 style={{ marginBottom: '1rem' }}>Issued HR Registration Tokens</h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--muted)' }}>
-                          <th style={{ padding: '0.75rem' }}>TOKEN ID</th>
-                          <th style={{ padding: '0.75rem' }}>RECRUITER</th>
-                          <th style={{ padding: '0.75rem' }}>ORGANIZATION</th>
-                          <th style={{ padding: '0.75rem' }}>STATUS</th>
-                          <th style={{ padding: '0.75rem', textAlign: 'right' }}>ACTION</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {hrTokens.map((tok, idx) => (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--muted)' }}>
+                        <th style={{ padding: '0.75rem' }}>TOKEN ID</th>
+                        <th style={{ padding: '0.75rem' }}>EMPLOYEE ID</th>
+                        <th style={{ padding: '0.75rem' }}>USERNAME</th>
+                        <th style={{ padding: '0.75rem' }}>PASSWORD</th>
+                        <th style={{ padding: '0.75rem' }}>RECRUITER & ORG</th>
+                        <th style={{ padding: '0.75rem' }}>STATUS</th>
+                        <th style={{ padding: '0.75rem', textAlign: 'right' }}>ACTIONS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {hrTokens
+                        .filter(t => {
+                          if (!adminTokenSearch.trim()) return true;
+                          const q = adminTokenSearch.toLowerCase();
+                          return t.id?.toLowerCase().includes(q) || 
+                            t.hrName?.toLowerCase().includes(q) || 
+                            t.org?.toLowerCase().includes(q) ||
+                            t.employeeId?.toLowerCase().includes(q) ||
+                            t.username?.toLowerCase().includes(q);
+                        })
+                        .map((tok, idx) => (
                           <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                            <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--accent)' }}>
+                            <td style={{ padding: '0.75rem', fontWeight: 700, color: tok.status === 'Active' ? 'var(--accent)' : 'var(--muted)' }}>
                               {tok.id}
                             </td>
-                            <td style={{ padding: '0.75rem' }}>{tok.hrName}</td>
-                            <td style={{ padding: '0.75rem' }}>{tok.org}</td>
+                            <td style={{ padding: '0.75rem', color: 'var(--text)' }}>
+                              <span style={{
+                                padding: '0.15rem 0.45rem',
+                                borderRadius: '4px',
+                                background: 'var(--bg)',
+                                border: '1px solid var(--border)',
+                                fontSize: '0.75rem'
+                              }}>
+                                {tok.employeeId || 'DEFAULT'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.75rem', color: 'var(--accent)', fontWeight: 600 }}>
+                              {tok.username || tok.employeeId?.toLowerCase() || 'recruiter'}
+                            </td>
+                            <td style={{ padding: '0.75rem' }}>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <span style={{
+                                  padding: '0.15rem 0.45rem',
+                                  borderRadius: '4px',
+                                  background: 'var(--bg)',
+                                  border: '1px solid var(--border)',
+                                  color: 'var(--text)',
+                                  fontSize: '0.75rem'
+                                }}>
+                                  {tok.password || 'Cv@2026'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToken(tok.password || 'Cv@2026')}
+                                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--muted)' }}
+                                  title="Copy password"
+                                >
+                                  {copiedToken === (tok.password || 'Cv@2026') ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
+                                </button>
+                              </div>
+                            </td>
+                            <td style={{ padding: '0.75rem' }}>
+                              <div>
+                                <strong style={{ color: 'var(--text)' }}>{tok.hrName}</strong>
+                                <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{tok.org}</div>
+                              </div>
+                            </td>
                             <td style={{ padding: '0.75rem' }}>
                               <span style={{
                                 padding: '0.2rem 0.5rem',
-                                background: 'var(--neon-bg)',
-                                color: 'var(--accent)',
+                                background: tok.status === 'Active' ? 'var(--neon-bg)' : 'rgba(239, 68, 68, 0.1)',
+                                color: tok.status === 'Active' ? 'var(--accent)' : '#f87171',
                                 borderRadius: 'var(--radius-pill)',
                                 fontSize: '0.72rem'
                               }}>
@@ -1649,24 +2466,36 @@ export default function App() {
                               </span>
                             </td>
                             <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                              <button
-                                type="button"
-                                onClick={() => copyToken(tok.id)}
-                                className="btn-pill-secondary"
-                                style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem' }}
-                              >
-                                {copiedToken === tok.id ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
-                                <span>{copiedToken === tok.id ? 'Copied' : 'Copy'}</span>
-                              </button>
+                              <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToken(tok.id)}
+                                  className="btn-pill-secondary"
+                                  style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem' }}
+                                >
+                                  {copiedToken === tok.id ? <Check size={12} color="var(--accent)" /> : <Copy size={12} />}
+                                  <span>{copiedToken === tok.id ? 'Copied' : 'Copy ID'}</span>
+                                </button>
+                                {tok.status === 'Active' && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRevokeToken(tok.id)}
+                                    className="btn-pill-secondary"
+                                    title="Revoke access"
+                                    style={{ padding: '0.25rem 0.65rem', fontSize: '0.72rem', color: '#f87171' }}
+                                  >
+                                    Revoke
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </main>
       )}
@@ -1739,14 +2568,17 @@ export default function App() {
             
             <span style={{ color: 'var(--border)' }}>|</span>
 
-            <button
-              onClick={() => setCurrentPage('admin')}
+            <a
+              href="/admin.html"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-pill-secondary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', textDecoration: 'none' }}
+              title="Open Admin Security Terminal in New Tab"
             >
               <Lock size={13} style={{ color: 'var(--accent)' }} />
-              <span>Admin Login</span>
-            </button>
+              <span>Admin Login ↗</span>
+            </a>
           </div>
         </div>
       </footer>

@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 dotenv.config();
 
 let isConnected = false;
@@ -9,8 +14,8 @@ let isConnected = false;
 export const inMemoryDB = {
   profiles: new Map(),
   hrTokens: [
-    { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', date: '2026-10-08', status: 'Active' },
-    { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', date: '2026-10-09', status: 'Active' }
+    { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', employeeId: 'CV101', username: 'cv101', password: 'Cv@101', date: '2026-10-08', status: 'Active' },
+    { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', employeeId: 'CV102', username: 'cv102', password: 'Cv@102', date: '2026-10-09', status: 'Active' }
   ]
 };
 
@@ -50,6 +55,9 @@ const HRTokenSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, index: true },
   hrName: { type: String, required: true },
   org: { type: String, required: true },
+  employeeId: { type: String },
+  username: { type: String },
+  password: { type: String },
   date: { type: String, default: () => new Date().toISOString().split('T')[0] },
   status: { type: String, default: 'Active' }
 });
