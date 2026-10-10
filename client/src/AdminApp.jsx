@@ -35,7 +35,6 @@ export default function AdminApp() {
     }
   });
 
-  // Login form state
   const [usernameInput, setUsernameInput] = useState('admin');
   const [passwordInput, setPasswordInput] = useState('');
   const [pinInput, setPinInput] = useState('2026');
