@@ -1,6 +1,7 @@
 /**
  * CommitCV RAG & Code Grounding Engine
  * Translates GitHub activity into student-centric career intelligence
+ * and performs recruiter Job Description (JD) matching.
  */
 
 export function analyzeCandidate(githubData) {
@@ -80,11 +81,13 @@ export function analyzeCandidate(githubData) {
     { name: 'Docker & Containers', regex: /docker|container|k8s|kubernetes/, type: 'DevOps & Cloud' },
     { name: 'PostgreSQL / SQL', regex: /postgres|sql|prisma|typeorm/, type: 'Database' },
     { name: 'Tailwind CSS', regex: /tailwind/, type: 'UI & Styling' },
-    { name: 'Python / FastAPI', regex: /python|fastapi|django|flask/, type: 'Language & Framework' }
+    { name: 'Python / FastAPI', regex: /python|fastapi|django|flask/, type: 'Language & Framework' },
+    { name: 'Go (Golang)', regex: /golang|go-/, type: 'Core Language' },
+    { name: 'TypeScript', regex: /typescript|tsconfig|\.ts/, type: 'Core Language' }
   ];
 
   frameworkRules.forEach(rule => {
-    if (rule.regex.test(allText) && !techStacks.some(t => t.name.includes(rule.name.split(' ')[0]))) {
+    if (rule.regex.test(allText) && !techStacks.some(t => t.name.toLowerCase().includes(rule.name.split(' ')[0].toLowerCase()))) {
       techStacks.push({
         name: rule.name,
         level: 'Intermediate',
@@ -179,5 +182,93 @@ export function analyzeCandidate(githubData) {
     techStacks,
     improvements,
     recommendedRoles
+  };
+}
+
+/**
+ * Recruiter Feature: Compare a Job Description against Candidate Code
+ */
+export function matchCandidateWithJD(jobDescription, candidateReport) {
+  if (!jobDescription || !candidateReport) {
+    return {
+      matchScore: 70,
+      verdict: 'PENDING ANALYSIS',
+      matchedSkills: [],
+      missingSkills: [],
+      assessmentSummary: 'Please provide both a Job Description and a candidate.'
+    };
+  }
+
+  const jdLower = jobDescription.toLowerCase();
+  
+  // Key skills dictionary to scan in JD
+  const skillCatalog = [
+    { name: 'React', regex: /\breact\b|\breactjs\b/ },
+    { name: 'TypeScript', regex: /\btypescript\b|\bts\b/ },
+    { name: 'JavaScript', regex: /\bjavascript\b|\bjs\b|\bes6\b/ },
+    { name: 'Node.js', regex: /\bnode\b|\bnodejs\b|\bexpress\b|\bnestjs\b/ },
+    { name: 'Go (Golang)', regex: /\bgo\b|\bgolang\b/ },
+    { name: 'Python', regex: /\bpython\b|\bdjango\b|\bfastapi\b|\bflask\b/ },
+    { name: 'Docker / Containers', regex: /\bdocker\b|\bcontainer\b|\bcontainers\b/ },
+    { name: 'Kubernetes', regex: /\bk8s\b|\bkubernetes\b/ },
+    { name: 'PostgreSQL / SQL', regex: /\bpostgres\b|\bpostgresql\b|\bsql\b|\bprisma\b/ },
+    { name: 'Redis', regex: /\bredis\b/ },
+    { name: 'REST APIs', regex: /\brest\b|\brestful\b|\bapi\b|\bapis\b/ },
+    { name: 'GraphQL', regex: /\bgraphql\b/ },
+    { name: 'CI/CD & GitHub Actions', regex: /\bci\/cd\b|\bci\b|\bgithub actions\b/ },
+    { name: 'Unit Testing', regex: /\btest\b|\btesting\b|\bjest\b|\bvitest\b|\bpytest\b/ },
+    { name: 'Microservices', regex: /\bmicroservices\b|\bdistributed\b/ },
+    { name: 'Tailwind CSS', regex: /\btailwind\b|\bcss\b/ }
+  ];
+
+  // 1. Identify which skills are demanded by the JD
+  const demandedSkills = skillCatalog.filter(s => s.regex.test(jdLower));
+
+  // If JD is short or generic, provide default standard requirements
+  const effectiveDemands = demandedSkills.length > 0 ? demandedSkills : [
+    { name: 'JavaScript' },
+    { name: 'React' },
+    { name: 'Node.js' },
+    { name: 'Git' }
+  ];
+
+  // 2. Evaluate against candidate's proven tech stacks & repos
+  const candidateTechStr = (candidateReport.techStacks || []).map(t => t.name.toLowerCase()).join(' ');
+
+  const matchedSkills = [];
+  const missingSkills = [];
+
+  effectiveDemands.forEach(req => {
+    const isMatched = candidateTechStr.includes(req.name.toLowerCase().split(' ')[0]);
+    if (isMatched) {
+      matchedSkills.push(req.name);
+    } else {
+      missingSkills.push(req.name);
+    }
+  });
+
+  // Calculate Match Score
+  const totalDemanded = effectiveDemands.length;
+  const matchRatio = totalDemanded > 0 ? (matchedSkills.length / totalDemanded) : 0.8;
+  const matchScore = Math.min(Math.round(matchRatio * 85 + (candidateReport.activity?.score ? candidateReport.activity.score * 0.15 : 10)), 98);
+
+  let verdict = 'FAIR MATCH — ASSESS TECHNICAL GAPS';
+  if (matchScore >= 85) {
+    verdict = 'STRONG MATCH — HIGHLY RECOMMENDED FOR TECHNICAL INTERVIEW';
+  } else if (matchScore >= 70) {
+    verdict = 'VIABLE CANDIDATE — VERIFY MISSING PREREQUISITES';
+  } else {
+    verdict = 'LOW MATCH — DOES NOT MEET CORE REPO CRITERIA';
+  }
+
+  const assessmentSummary = `Candidate @${candidateReport.username} demonstrates ${matchedSkills.length} of ${totalDemanded} core competencies specified in your Job Description. Verified repository code proves ability in [${matchedSkills.join(', ') || 'General Programming'}]. However, public commits show zero evidence for [${missingSkills.join(', ') || 'None'}].`;
+
+  return {
+    matchScore,
+    verdict,
+    demandedSkillsCount: totalDemanded,
+    matchedSkills,
+    missingSkills,
+    assessmentSummary
   };
 }

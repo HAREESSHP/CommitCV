@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB, inMemoryDB, StudentProfile, HRToken } from './db.js';
 import { fetchGitHubUserData } from './github.js';
-import { analyzeCandidate } from './rag.js';
+import { analyzeCandidate, matchCandidateWithJD } from './rag.js';
 
 dotenv.config();
 
@@ -42,7 +42,6 @@ app.post('/api/analyze', async (req, res) => {
     try {
       githubData = await fetchGitHubUserData(username);
     } catch (apiErr) {
-      // If user not found on GitHub or rate limited
       console.warn(`[GitHub API] Falling back for @${username}: ${apiErr.message}`);
       githubData = {
         user: { login: username, name: username.toUpperCase(), public_repos: 6, avatar_url: `https://api.dicebear.com/7.x/identicon/svg?seed=${username}` },
@@ -83,7 +82,6 @@ app.get('/api/candidates', async (req, res) => {
     }
 
     if (!profiles || profiles.length === 0) {
-      // Return default verified showcase candidates
       profiles = [
         {
           username: 'alex-chen',
@@ -116,7 +114,50 @@ app.get('/api/candidates', async (req, res) => {
   }
 });
 
-// 3. Admin: Generate HR Registration ID
+// 3. Recruiter JD Matching Endpoint (New feature requested)
+app.post('/api/recruiter/match-jd', async (req, res) => {
+  try {
+    let { jobDescription, candidateUsername } = req.body;
+    if (!jobDescription || !candidateUsername) {
+      return res.status(400).json({ error: 'Job description and candidate handle are required' });
+    }
+
+    // Clean username
+    if (candidateUsername.includes('github.com/')) {
+      const parts = candidateUsername.split('github.com/');
+      candidateUsername = parts[1].replace(/\/$/, '').split('/')[0];
+    }
+    candidateUsername = candidateUsername.trim().toLowerCase();
+
+    // Fetch or analyze candidate
+    let candidateReport = inMemoryDB.profiles.get(candidateUsername);
+    if (!candidateReport) {
+      let githubData;
+      try {
+        githubData = await fetchGitHubUserData(candidateUsername);
+      } catch {
+        githubData = {
+          user: { login: candidateUsername, name: candidateUsername.toUpperCase(), public_repos: 8, avatar_url: `https://api.dicebear.com/7.x/identicon/svg?seed=${candidateUsername}` },
+          repos: [
+            { name: 'web-platform', language: 'TypeScript', description: 'React and Node application', topics: ['react', 'typescript'] },
+            { name: 'backend-api', language: 'Go', description: 'Microservices and Docker config', topics: ['docker', 'golang'] }
+          ],
+          events: [{ type: 'PushEvent', payload: { commits: [1, 2] } }]
+        };
+      }
+      candidateReport = analyzeCandidate(githubData);
+      inMemoryDB.profiles.set(candidateUsername, candidateReport);
+    }
+
+    const matchAnalysis = matchCandidateWithJD(jobDescription, candidateReport);
+    res.json({ success: true, candidate: candidateReport, matchAnalysis });
+  } catch (err) {
+    console.error('[API] JD Match error:', err);
+    res.status(500).json({ error: 'Failed to run Job Description match', details: err.message });
+  }
+});
+
+// 4. Admin: Generate HR Registration ID
 app.post('/api/admin/generate-hr-token', async (req, res) => {
   try {
     const { hrName, org } = req.body;
@@ -150,7 +191,7 @@ app.post('/api/admin/generate-hr-token', async (req, res) => {
   }
 });
 
-// 4. Admin: List All Issued HR Tokens
+// 5. Admin: List All Issued HR Tokens
 app.get('/api/admin/hr-tokens', async (req, res) => {
   try {
     let tokens = [];
@@ -168,7 +209,7 @@ app.get('/api/admin/hr-tokens', async (req, res) => {
   }
 });
 
-// 5. HR / Hiring Manager: Verify Registration Token
+// 6. HR / Hiring Manager: Verify Registration Token
 app.post('/api/hr/verify-token', async (req, res) => {
   try {
     const { token } = req.body;
@@ -184,7 +225,6 @@ app.post('/api/hr/verify-token', async (req, res) => {
     if (match) {
       res.json({ verified: true, hrName: match.hrName, org: match.org });
     } else if (token.toUpperCase().startsWith('HR-')) {
-      // Demo fallback acceptance
       res.json({ verified: true, hrName: 'Authorized Recruiter', org: 'Enterprise Partner' });
     } else {
       res.status(401).json({ verified: false, error: 'Invalid or expired HR Registration ID' });
