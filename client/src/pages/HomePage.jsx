@@ -64,6 +64,27 @@ export default function HomePage({
     return () => clearTimeout(timer);
   }, [typed1, typed2, typingPhase]);
 
+  // Scroll-triggered Intersection Observer for Section 3 (Advantages)
+  const [featuresInView, setFeaturesInView] = React.useState(false);
+  const featuresRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const target = featuresRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setFeaturesInView(true);
+        }
+      },
+      { threshold: 0.12 }
+    );
+
+    observer.observe(target);
+    return () => observer.unobserve(target);
+  }, []);
+
   return (
     <main style={{ flex: 1 }}>
       
@@ -491,7 +512,7 @@ export default function HomePage({
       </section>
 
       {/* 3. ADVANTAGES OF COMMITCV */}
-      <section id="features" className="section">
+      <section id="features" ref={featuresRef} className="section">
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <div className="section-tag">02 // CORE PROOF INVARIANTS</div>
@@ -510,9 +531,10 @@ export default function HomePage({
           }}>
             {/* Advantage 1 */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.08s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '0.15s',
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -534,9 +556,10 @@ export default function HomePage({
 
             {/* Advantage 2 */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.16s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '0.35s',
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -558,9 +581,10 @@ export default function HomePage({
 
             {/* Advantage 3 */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.24s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '0.55s',
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -582,9 +606,10 @@ export default function HomePage({
 
             {/* Advantage 4 */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.32s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '0.75s',
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -606,9 +631,10 @@ export default function HomePage({
 
             {/* Advantage 5 */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.40s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '0.95s',
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -630,9 +656,10 @@ export default function HomePage({
 
             {/* Advantage 6 */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.48s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '1.15s',
                 padding: '1.75rem',
                 background: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -654,9 +681,10 @@ export default function HomePage({
 
             {/* Advantage 7 - Full Width Container Featured Banner */}
             <div 
-              className="animate-fall-card"
+              className={featuresInView ? "animate-fall-card" : ""}
               style={{
-                animationDelay: '0.56s',
+                opacity: featuresInView ? undefined : 0,
+                animationDelay: '1.35s',
                 gridColumn: '1 / -1',
                 padding: '2rem 2.25rem',
                 background: 'var(--neon-bg)',
