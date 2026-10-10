@@ -171,8 +171,8 @@ app.post('/api/recruiter/match-jd', async (req, res) => {
 });
 
 // 4. Admin Authentication (Production Credentials Verification)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'CommitCV@2026';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'commitcv@1';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '934631';
 
 app.post('/api/admin/login', async (req, res) => {
   try {
@@ -200,40 +200,46 @@ app.post('/api/admin/login', async (req, res) => {
   }
 });
 
-// 5. Admin: Generate HR Registration ID
+// Helper for deriving Recruiter ID and Password from Employee ID input
+function deriveRecruiterCredentials(empIdInput) {
+  const raw = (empIdInput || '101').toString().trim();
+  const numMatch = raw.match(/\d+/);
+  if (numMatch) {
+    const num = numMatch[0];
+    return {
+      recruiterId: `cv-${num}`,
+      username: `cv-${num}`,
+      password: `cv@${num}`,
+      employeeId: `CV-${num}`
+    };
+  }
+  const clean = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return {
+    recruiterId: `cv-${clean}`,
+    username: `cv-${clean}`,
+    password: `cv@${clean}`,
+    employeeId: raw.toUpperCase()
+  };
+}
+
+// 5. Admin: Generate HR Registration ID & Credentials
 app.post('/api/admin/generate-hr-token', async (req, res) => {
   try {
-    let { hrName, org, employeeId } = req.body;
+    let { hrName, org, role, employeeId } = req.body;
     if (!hrName || !org) {
       return res.status(400).json({ error: 'HR Recruiter Name and Company / Organization are required' });
     }
 
-    // Clean Employee ID and generate username & password
-    let cleanEmpId = (employeeId || `CV${Math.floor(100 + Math.random() * 900)}`).trim();
-    if (/^\d+$/.test(cleanEmpId)) {
-      cleanEmpId = `cv${cleanEmpId}`;
-    }
-    const cleanUsername = cleanEmpId.toLowerCase();
-
-    // Generate password: e.g. cv101 -> Cv@101, hr204 -> Hr@204, cv-101 -> Cv@101
-    const match = cleanEmpId.match(/^([a-zA-Z]+)[-_]?(\d+)$/);
-    let generatedPassword = `Cv@${cleanEmpId}`;
-    if (match) {
-      const prefix = match[1].charAt(0).toUpperCase() + match[1].slice(1).toLowerCase();
-      generatedPassword = `${prefix}@${match[2]}`;
-    }
-
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const cleanOrg = org.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const tokenId = `HR-${randomNum}-${cleanOrg}`;
-
+    const derived = deriveRecruiterCredentials(employeeId);
     const tokenEntry = {
-      id: tokenId,
+      id: derived.recruiterId,
+      recruiterId: derived.recruiterId,
       hrName: hrName.trim(),
       org: org.trim(),
-      employeeId: cleanEmpId.toUpperCase(),
-      username: cleanUsername,
-      password: generatedPassword,
+      role: (role || 'HR Recruiter').trim(),
+      employeeId: derived.employeeId,
+      username: derived.username,
+      password: derived.password,
       date: new Date().toISOString().split('T')[0],
       status: 'Active'
     };
@@ -246,7 +252,7 @@ app.post('/api/admin/generate-hr-token', async (req, res) => {
       inMemoryDB.hrTokens.unshift(tokenEntry);
     }
 
-    res.json({ success: true, token: tokenEntry });
+    res.json({ success: true, token: tokenEntry, recruiter: tokenEntry });
   } catch (err) {
     res.status(500).json({ error: 'Failed to generate HR registration ID' });
   }
@@ -267,6 +273,7 @@ app.post('/api/admin/create-recruiter', async (req, res) => {
     const cleanEmp = employeeId ? employeeId.trim().toUpperCase() : `CV${randomNum}`;
 
     const account = {
+      id: recruiterId,
       recruiterId,
       password: recruiterPassword,
       hrName: hrName.trim(),
@@ -277,51 +284,90 @@ app.post('/api/admin/create-recruiter', async (req, res) => {
       status: 'Active'
     };
 
+    // Always push to in-memory fallback stores
+    inMemoryDB.recruiters.unshift(account);
+    inMemoryDB.hrTokens.unshift(account);
+
     try {
       if (RecruiterAccount.create) {
         await RecruiterAccount.create(account);
       }
-    } catch {
-      inMemoryDB.recruiters.unshift(account);
+      if (HRToken.create) {
+        await HRToken.create({ ...account, id: recruiterId });
+      }
+    } catch (e) {
+      console.warn('[DB] Saved to memory store:', e.message);
     }
 
-    res.json({ success: true, recruiter: account });
+    res.json({ success: true, recruiter: account, token: account });
   } catch (err) {
     res.status(500).json({ error: 'Failed to create recruiter account' });
   }
 });
 
-// 6. Admin: List All Issued HR Tokens
+// Admin: List All Issued HR Tokens / Recruiters
 app.get('/api/admin/hr-tokens', async (req, res) => {
   try {
     let tokens = [];
     try {
-      tokens = await HRToken.find().sort({ _id: -1 });
-    } catch {
-      tokens = inMemoryDB.hrTokens;
-    }
-    if (!tokens || tokens.length === 0) {
-      tokens = inMemoryDB.hrTokens;
-    }
-    res.json({ success: true, tokens });
+      if (HRToken.find) {
+        tokens = await HRToken.find().sort({ _id: -1 });
+      }
+    } catch {}
+
+    let recruiters = [];
+    try {
+      if (RecruiterAccount.find) {
+        recruiters = await RecruiterAccount.find().sort({ _id: -1 });
+      }
+    } catch {}
+
+    const rawAll = [
+      ...tokens,
+      ...recruiters.map(r => ({ ...r._doc || r, id: r.recruiterId || r.id })),
+      ...inMemoryDB.hrTokens,
+      ...inMemoryDB.recruiters.map(r => ({ ...r, id: r.recruiterId || r.id }))
+    ];
+
+    const uniqueMap = new Map();
+    rawAll.forEach(item => {
+      const key = (item.id || item.recruiterId || '').toUpperCase();
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
+      }
+    });
+
+    res.json({ success: true, tokens: Array.from(uniqueMap.values()) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch HR tokens' });
   }
 });
 
-// Admin: List All Issued Recruiter Accounts (ID & Password)
+// Admin: List All Issued Recruiter Accounts
 app.get('/api/admin/recruiters', async (req, res) => {
   try {
     let accounts = [];
     try {
-      accounts = await RecruiterAccount.find().sort({ _id: -1 });
-    } catch {
-      accounts = inMemoryDB.recruiters;
-    }
-    if (!accounts || accounts.length === 0) {
-      accounts = inMemoryDB.recruiters;
-    }
-    res.json({ success: true, recruiters: accounts });
+      if (RecruiterAccount.find) {
+        accounts = await RecruiterAccount.find().sort({ _id: -1 });
+      }
+    } catch {}
+
+    const rawAll = [
+      ...accounts,
+      ...inMemoryDB.recruiters,
+      ...inMemoryDB.hrTokens.map(t => ({ ...t, recruiterId: t.id }))
+    ];
+
+    const uniqueMap = new Map();
+    rawAll.forEach(item => {
+      const key = (item.recruiterId || item.id || '').toUpperCase();
+      if (key && !uniqueMap.has(key)) {
+        uniqueMap.set(key, item);
+      }
+    });
+
+    res.json({ success: true, recruiters: Array.from(uniqueMap.values()) });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch recruiter accounts' });
   }

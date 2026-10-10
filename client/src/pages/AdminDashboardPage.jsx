@@ -40,8 +40,9 @@ export default function AdminDashboardPage({
   handleGenerateHrToken,
   handleRevokeToken
 }) {
-  const activeTokensCount = tokensList.filter(t => t.status === 'Active').length;
-  const uniqueOrgsCount = new Set(tokensList.map(t => t.org)).size;
+  const list = Array.isArray(tokensList) ? tokensList : [];
+  const activeTokensCount = list.filter(t => t && t.status === 'Active').length;
+  const uniqueOrgsCount = new Set(list.map(t => t && t.org).filter(Boolean)).size;
 
   return (
     <main style={{ flex: 1, padding: '3.5rem 0 5rem 0' }}>
@@ -122,7 +123,7 @@ export default function AdminDashboardPage({
               fontSize: '0.82rem'
             }}>
               <User size={15} style={{ color: 'var(--accent)' }} />
-              <span style={{ fontWeight: 700, color: 'var(--text)' }}>@{adminAuth?.username || 'admin'}</span>
+              <span style={{ fontWeight: 700, color: 'var(--text)' }}>@{adminAuth?.username || 'commitcv@1'}</span>
               <span style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>&bull; Super Admin</span>
             </div>
 
@@ -435,29 +436,29 @@ export default function AdminDashboardPage({
             padding: '2rem'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
-              <h3 style={{ margin: 0, fontSize: '1.3rem', fontFamily: 'var(--font-heading)' }}>Issue New HR Recruiter Registration Token</h3>
+              <h3 style={{ margin: 0, fontSize: '1.3rem', fontFamily: 'var(--font-heading)' }}>Issue New HR Recruiter Credentials</h3>
               <span style={{
                 fontSize: '0.72rem',
                 fontFamily: 'var(--font-mono)',
-                padding: '0.2rem 0.6rem',
+                padding: '0.25rem 0.75rem',
                 borderRadius: '9999px',
                 background: 'var(--neon-bg)',
                 color: 'var(--accent)',
-                fontWeight: 600
+                fontWeight: 700
               }}>
-                Auto Credential Derivation Active
+                Auto Rule: Emp ID 101 &rarr; ID: cv-101 | Pass: cv@101
               </span>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
-              Provide recruiter details. The authority engine will automatically bind the Employee ID to login credentials and issue a verified token.
+              Enter HR recruiter details (Name, Company, Role, Emp ID). The system will automatically generate the corresponding Recruiter ID (`cv-101`) and Password (`cv@101`) for both uppercase and lowercase inputs.
             </p>
 
             <form onSubmit={handleGenerateHrToken} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               
-              {/* 3 Box Shaped Feature Containers */}
+              {/* 4 Box Shaped Feature Containers */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
                 gap: '1.25rem'
               }}>
                 {/* Box 1: HR Recruiter Name */}
@@ -479,7 +480,7 @@ export default function AdminDashboardPage({
                       color: 'var(--muted)',
                       letterSpacing: '0.04em'
                     }}>
-                      HR RECRUITER NAME:
+                      1. HR RECRUITER NAME:
                     </label>
                   </div>
                   <input 
@@ -487,7 +488,7 @@ export default function AdminDashboardPage({
                     required
                     value={newHrName}
                     onChange={(e) => setNewHrName(e.target.value)}
-                    placeholder="e.g. Rachel Adams"
+                    placeholder="e.g. Sarah Jenkins"
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
@@ -503,7 +504,7 @@ export default function AdminDashboardPage({
                   />
                 </div>
 
-                {/* Box 2: Organization Name */}
+                {/* Box 2: Company Name */}
                 <div style={{
                   background: 'var(--bg)',
                   border: '1px solid var(--border)',
@@ -522,7 +523,7 @@ export default function AdminDashboardPage({
                       color: 'var(--muted)',
                       letterSpacing: '0.04em'
                     }}>
-                      ORGANIZATION / COMPANY:
+                      2. COMPANY NAME:
                     </label>
                   </div>
                   <input 
@@ -530,7 +531,7 @@ export default function AdminDashboardPage({
                     required
                     value={newOrg}
                     onChange={(e) => setNewOrg(e.target.value)}
-                    placeholder="e.g. Stripe, TechCorp"
+                    placeholder="e.g. Stripe, Google"
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
@@ -546,7 +547,7 @@ export default function AdminDashboardPage({
                   />
                 </div>
 
-                {/* Box 3: HR Email Address */}
+                {/* Box 3: Role / Designation */}
                 <div style={{
                   background: 'var(--bg)',
                   border: '1px solid var(--border)',
@@ -565,15 +566,15 @@ export default function AdminDashboardPage({
                       color: 'var(--muted)',
                       letterSpacing: '0.04em'
                     }}>
-                      WORK EMAIL ADDRESS:
+                      3. HR ROLE / DESIGNATION:
                     </label>
                   </div>
                   <input 
-                    type="email"
+                    type="text"
                     required
-                    value={newEmail}
+                    value={newEmail || 'Senior Talent Recruiter'}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="e.g. rachel@stripe.com"
+                    placeholder="e.g. Technical Recruiter"
                     style={{
                       width: '100%',
                       padding: '0.75rem 1rem',
@@ -588,72 +589,77 @@ export default function AdminDashboardPage({
                     }}
                   />
                 </div>
-              </div>
 
-              {/* Optional Custom Token ID & Password */}
-              <div style={{
-                background: 'var(--bg)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '1.25rem',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                gap: '1.25rem'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                    <Key size={14} style={{ color: 'var(--muted)' }} />
-                    <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)' }}>
-                      CUSTOM RECRUITER ID (OPTIONAL):
+                {/* Box 4: Emp ID */}
+                <div style={{
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.6rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Key size={15} style={{ color: 'var(--accent)' }} />
+                    <label style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      color: 'var(--muted)',
+                      letterSpacing: '0.04em'
+                    }}>
+                      4. EMP ID (e.g. 101 or 201):
                     </label>
                   </div>
                   <input 
                     type="text"
+                    required
                     value={customTokenId}
                     onChange={(e) => setCustomTokenId(e.target.value)}
-                    placeholder="Auto-generated if blank (e.g. REC-STRIPE-882)"
+                    placeholder="e.g. 101 or 201 or CV-101"
                     style={{
                       width: '100%',
-                      padding: '0.65rem 0.85rem',
+                      padding: '0.75rem 1rem',
                       background: 'var(--surface)',
                       border: '1px solid var(--border)',
                       borderRadius: 'var(--radius-sm)',
                       color: 'var(--text)',
                       fontFamily: 'var(--font-mono)',
-                      fontSize: '0.85rem',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-                    <Lock size={14} style={{ color: 'var(--muted)' }} />
-                    <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--muted)' }}>
-                      ASSIGNED PASSWORD (OPTIONAL):
-                    </label>
-                  </div>
-                  <input 
-                    type="text"
-                    value={customPassword}
-                    onChange={(e) => setCustomPassword(e.target.value)}
-                    placeholder="Default: Cv@2026"
-                    style={{
-                      width: '100%',
-                      padding: '0.65rem 0.85rem',
-                      background: 'var(--surface)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-sm)',
-                      color: 'var(--text)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.85rem',
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
                       outline: 'none',
                       boxSizing: 'border-box'
                     }}
                   />
                 </div>
               </div>
+
+              {/* Live Derived Credentials Preview Badge */}
+              {customTokenId && (
+                <div style={{
+                  background: 'var(--bg)',
+                  border: '1px solid var(--accent)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '0.85rem 1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.85rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Zap size={15} style={{ color: 'var(--accent)' }} />
+                    <span>DERIVED CREDENTIALS:</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1.25rem' }}>
+                    <span>Generated ID: <strong style={{ color: 'var(--accent)' }}>cv-{(customTokenId || '').toString().replace(/[^0-9a-zA-Z]/g, '').toLowerCase().replace(/^cv/, '') || '101'}</strong></span>
+                    <span>Password: <strong style={{ color: 'var(--text)' }}>cv@{(customTokenId || '').toString().replace(/[^0-9a-zA-Z]/g, '').toLowerCase().replace(/^cv/, '') || '101'}</strong></span>
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                 <button
@@ -663,7 +669,7 @@ export default function AdminDashboardPage({
                   style={{ padding: '0.75rem 2rem' }}
                 >
                   <Zap size={16} />
-                  <span>{isGeneratingToken ? 'Generating...' : 'Issue Access Token & Credentials'}</span>
+                  <span>{isGeneratingToken ? 'Generating...' : 'Generate HR Recruiter Credentials'}</span>
                 </button>
               </div>
             </form>
@@ -696,7 +702,7 @@ export default function AdminDashboardPage({
                 fontSize: '0.78rem'
               }}>
                 <Layers size={13} style={{ color: 'var(--accent)' }} />
-                <span>{tokensList.length} Accounts Registered</span>
+                <span>{list.length} Accounts Registered</span>
               </div>
             </div>
 
@@ -714,7 +720,7 @@ export default function AdminDashboardPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {tokensList.map((tok) => (
+                  {list.map((tok) => (
                     <tr key={tok.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td style={{ padding: '0.75rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
                         {tok.employeeId || 'EMP-7701'}

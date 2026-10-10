@@ -20,29 +20,26 @@ function RevealOnScroll({ children, className = '', style = {}, delay = '0s' }) 
     const el = ref.current;
     if (!el) return;
 
-    const checkView = () => {
-      const rect = el.getBoundingClientRect();
-      if (rect.top < window.innerHeight * 0.90 && rect.bottom > 0) {
-        setInView(true);
-      }
-    };
-
-    checkView();
+    // If card is already in upper viewport on mount, reveal immediately
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.85 && rect.bottom > 0) {
+      setInView(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setInView(true);
+          observer.unobserve(el);
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
     );
 
     observer.observe(el);
-    window.addEventListener('scroll', checkView, { passive: true });
     return () => {
-      observer.unobserve(el);
-      window.removeEventListener('scroll', checkView);
+      observer.disconnect();
     };
   }, []);
 
@@ -51,8 +48,8 @@ function RevealOnScroll({ children, className = '', style = {}, delay = '0s' }) 
       ref={ref}
       className={`${className} ${inView ? 'animate-fall-card' : ''}`}
       style={{
-        ...style,
         opacity: inView ? undefined : 0,
+        ...style,
         animationDelay: delay
       }}
     >
@@ -289,15 +286,17 @@ export default function HomePage({
       {/* 2. WHY TRADITIONAL SYSTEMS FAIL */}
       <section id="why-traditional" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', paddingBottom: '9rem' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div className="section-tag">01 // THE PARADIGM SHIFT</div>
-            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
-              Why traditional hiring falls short
-            </h2>
-            <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
-              Skills are claimed on resumes, but rarely verified.
-            </p>
-          </div>
+          <RevealOnScroll delay="0s">
+            <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+              <div className="section-tag">01 // THE PARADIGM SHIFT</div>
+              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                Why traditional hiring falls short
+              </h2>
+              <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
+                Skills are claimed on resumes, but rarely verified.
+              </p>
+            </div>
+          </RevealOnScroll>
 
           <div style={{
             display: 'flex',
@@ -545,15 +544,17 @@ export default function HomePage({
       {/* 3. ADVANTAGES OF COMMITCV */}
       <section id="features" className="section">
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <div className="section-tag">02 // CORE PROOF INVARIANTS</div>
-            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
-              Hire on proof, not claims
-            </h2>
-            <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
-              Every result is backed by real code.
-            </p>
-          </div>
+          <RevealOnScroll delay="0s">
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <div className="section-tag">02 // CORE PROOF INVARIANTS</div>
+              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                Hire on proof, not claims
+              </h2>
+              <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
+                Every result is backed by real code.
+              </p>
+            </div>
+          </RevealOnScroll>
 
           <div style={{
             display: 'grid',
@@ -561,7 +562,7 @@ export default function HomePage({
             gap: '1.5rem'
           }}>
             {/* Advantage 1 */}
-            <RevealOnScroll delay="0.05s">
+            <RevealOnScroll delay="0s">
               <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
@@ -584,7 +585,7 @@ export default function HomePage({
             </RevealOnScroll>
 
             {/* Advantage 2 */}
-            <RevealOnScroll delay="0.15s">
+            <RevealOnScroll delay="0.04s">
               <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
@@ -607,7 +608,7 @@ export default function HomePage({
             </RevealOnScroll>
 
             {/* Advantage 3 */}
-            <RevealOnScroll delay="0.25s">
+            <RevealOnScroll delay="0.08s">
               <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
@@ -630,7 +631,7 @@ export default function HomePage({
             </RevealOnScroll>
 
             {/* Advantage 4 */}
-            <RevealOnScroll delay="0.05s">
+            <RevealOnScroll delay="0.12s">
               <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
@@ -653,7 +654,7 @@ export default function HomePage({
             </RevealOnScroll>
 
             {/* Advantage 5 */}
-            <RevealOnScroll delay="0.15s">
+            <RevealOnScroll delay="0.16s">
               <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
@@ -676,7 +677,7 @@ export default function HomePage({
             </RevealOnScroll>
 
             {/* Advantage 6 */}
-            <RevealOnScroll delay="0.25s">
+            <RevealOnScroll delay="0.2s">
               <div style={{
                 padding: '1.75rem',
                 background: 'var(--surface)',
@@ -700,7 +701,7 @@ export default function HomePage({
 
             {/* Advantage 7 - Full Width Container Featured Banner */}
             <div style={{ gridColumn: '1 / -1' }}>
-              <RevealOnScroll delay="0.1s">
+              <RevealOnScroll delay="0.24s">
                 <div style={{
                   padding: '2rem 2.25rem',
                   background: 'var(--neon-bg)',
@@ -753,15 +754,17 @@ export default function HomePage({
         <div className="container" style={{ position: 'relative' }}>
           
           {/* Section Header */}
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div className="section-tag">03 // DUAL PIPELINE WORKFLOW</div>
-            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
-              From GitHub link to proof in three steps
-            </h2>
-            <p style={{ fontSize: '1.05rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
-              Side-by-side workflow for Students and Hiring Teams connected by AST code verification.
-            </p>
-          </div>
+          <RevealOnScroll delay="0s">
+            <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+              <div className="section-tag">03 // DUAL PIPELINE WORKFLOW</div>
+              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+                From GitHub link to proof in three steps
+              </h2>
+              <p style={{ fontSize: '1.05rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
+                Side-by-side workflow for Students and Hiring Teams connected by AST code verification.
+              </p>
+            </div>
+          </RevealOnScroll>
 
           {/* Dual Column Header Labels */}
           <div style={{

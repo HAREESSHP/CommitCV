@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShieldCheck, User, Lock, AlertCircle, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldCheck, User, Lock, AlertCircle, ArrowRight, Eye, EyeOff, Zap } from 'lucide-react';
 
 export default function AdminAccessPage({
   adminUsername,
@@ -9,43 +9,36 @@ export default function AdminAccessPage({
   adminAuthError,
   handleAdminLogin
 }) {
+  const [showPass, setShowPass] = useState(false);
+
   return (
-    <main style={{ flex: 1, padding: '4rem 0 6rem 0', display: 'flex', alignItems: 'center' }}>
-      <div className="container" style={{ maxWidth: '520px', width: '100%' }}>
+    <main style={{ flex: 1, padding: '2.5rem 0 5.5rem 0', display: 'flex', alignItems: 'center' }}>
+      <div className="container" style={{ maxWidth: '560px', width: '100%' }}>
         
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            padding: '0.35rem 0.85rem',
-            borderRadius: '9999px',
-            background: 'var(--neon-bg)',
-            color: 'var(--accent)',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            fontFamily: 'var(--font-mono)',
-            marginBottom: '1rem',
-            border: '1px solid rgba(5, 150, 105, 0.25)'
+        {/* Dedicated Admin Header */}
+        <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+          <h1 style={{ 
+            fontSize: '1.95rem', 
+            marginBottom: '0.45rem', 
+            fontFamily: 'var(--font-heading)', 
+            color: 'var(--text)',
+            letterSpacing: '-0.02em',
+            whiteSpace: 'nowrap'
           }}>
-            <ShieldCheck size={14} />
-            <span>PRODUCTION SECURITY GATEWAY</span>
-          </div>
-          
-          <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>
-            Admin Security Access
+            System Administrator Access
           </h1>
-          <p style={{ color: 'var(--muted)', fontSize: '0.92rem', margin: 0 }}>
-            Super Admin credential check for issuing HR Tokens and managing Recruiter accounts.
+          <p style={{ color: 'var(--muted)', fontSize: '0.94rem', margin: 0, lineHeight: 1.55 }}>
+            Restricted access gate for issuing HR Recruiter IDs, credentials, and partner authority tokens.
           </p>
         </div>
 
+        {/* Exclusive Admin Login Box */}
         <div style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',
           padding: '2.5rem',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+          boxShadow: '0 24px 50px rgba(0,0,0,0.14)'
         }}>
           {adminAuthError && (
             <div style={{
@@ -65,10 +58,20 @@ export default function AdminAccessPage({
             </div>
           )}
 
-          <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.35rem' }}>
+            
+            {/* Admin ID Field */}
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem', fontWeight: 700 }}>
-                ADMIN USERNAME
+              <label style={{ 
+                display: 'block', 
+                fontFamily: 'var(--font-mono)', 
+                fontSize: '0.75rem', 
+                color: 'var(--muted)', 
+                marginBottom: '0.45rem', 
+                fontWeight: 700,
+                letterSpacing: '0.04em'
+              }}>
+                ADMIN ID:
               </label>
               <div style={{
                 display: 'flex',
@@ -77,12 +80,12 @@ export default function AdminAccessPage({
                 padding: '0 1rem',
                 background: 'var(--bg)',
                 border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)'
+                borderRadius: 'var(--radius-pill)'
               }}>
-                <User size={16} style={{ color: 'var(--muted)' }} />
+                <User size={16} style={{ color: 'var(--accent)' }} />
                 <input 
                   type="text"
-                  placeholder="admin"
+                  placeholder="Enter Admin ID"
                   value={adminUsername}
                   onChange={(e) => setAdminUsername(e.target.value)}
                   style={{
@@ -91,18 +94,28 @@ export default function AdminAccessPage({
                     outline: 'none',
                     background: 'transparent',
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '0.9rem',
+                    fontSize: '0.92rem',
                     color: 'var(--text)',
-                    padding: '0.85rem 0'
+                    padding: '0.85rem 0',
+                    fontWeight: 600
                   }}
                   required
                 />
               </div>
             </div>
 
+            {/* Password Field */}
             <div>
-              <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem', fontWeight: 700 }}>
-                SECURITY MASTER PASSWORD
+              <label style={{ 
+                display: 'block', 
+                fontFamily: 'var(--font-mono)', 
+                fontSize: '0.75rem', 
+                color: 'var(--muted)', 
+                marginBottom: '0.45rem', 
+                fontWeight: 700,
+                letterSpacing: '0.04em'
+              }}>
+                PASSWORD:
               </label>
               <div style={{
                 display: 'flex',
@@ -111,46 +124,50 @@ export default function AdminAccessPage({
                 padding: '0 1rem',
                 background: 'var(--bg)',
                 border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)'
+                borderRadius: 'var(--radius-pill)'
               }}>
                 <Lock size={16} style={{ color: 'var(--muted)' }} />
                 <input 
-                  type="password"
+                  type={showPass ? 'text' : 'password'}
                   placeholder="••••••••••••"
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   style={{
-                    width: '100%',
+                    flex: 1,
                     border: 'none',
                     outline: 'none',
                     background: 'transparent',
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '0.9rem',
+                    fontSize: '0.92rem',
                     color: 'var(--text)',
-                    padding: '0.85rem 0'
+                    padding: '0.85rem 0',
+                    fontWeight: 600
                   }}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(!showPass)}
+                  style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0 }}
+                >
+                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
             </div>
 
             <button 
               type="submit"
               className="btn-pill"
-              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', padding: '0.75rem 1.5rem' }}
+              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', padding: '0.85rem 1.5rem' }}
             >
-              <span>Authenticate & Enter Dashboard</span>
+              <Zap size={16} />
+              <span>Login to Admin Dashboard</span>
               <div className="btn-pill-arrow">
                 <ArrowRight size={14} />
               </div>
             </button>
           </form>
 
-          <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-subtle)', textAlign: 'center' }}>
-            <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
-              Default Admin Credentials: <strong>admin</strong> / <strong>admin123</strong>
-            </span>
-          </div>
         </div>
 
       </div>

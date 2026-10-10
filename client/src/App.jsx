@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { 
   ShieldCheck,
   Briefcase,
@@ -48,6 +48,81 @@ import RecruiterLoginPage from './pages/RecruiterLoginPage';
 import RecruiterDashboardPage from './pages/RecruiterDashboardPage';
 
 const API_BASE = 'http://localhost:5000/api';
+
+/* ==========================================================================
+   React Error Boundary to catch any UI runtime crashes
+   ========================================================================== */
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('CommitCV ErrorBoundary caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '60vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '3rem',
+          textAlign: 'center',
+          color: 'var(--text)'
+        }}>
+          <div style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '2.5rem',
+            maxWidth: '560px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.15)'
+          }}>
+            <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', marginBottom: '1rem' }}>
+              CommitCV UI System Notice
+            </h2>
+            <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              An unexpected interface error occurred during rendering.
+            </p>
+            <div style={{
+              background: 'var(--bg)',
+              padding: '1rem',
+              borderRadius: 'var(--radius-md)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.8rem',
+              color: '#f87171',
+              marginBottom: '1.5rem',
+              wordBreak: 'break-word'
+            }}>
+              {this.state.error?.toString() || 'Unknown UI Error'}
+            </div>
+            <button 
+              className="btn-pill" 
+              onClick={() => {
+                localStorage.removeItem('commitcv_admin_session');
+                window.location.hash = '#home';
+                window.location.reload();
+              }}
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              Reset Session & Reload Home
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 /* ==========================================================================
    Wonder Makers Themed Pill Switcher
@@ -118,8 +193,18 @@ Requirements:
 ];
 
 export default function App() {
-  // Navigation: 'home' | 'student' | 'recruiter-login' | 'recruiter-dashboard' | 'admin'
-  const [currentPage, setCurrentPage] = useState('home');
+  // Navigation: 'home' | 'student' | 'recruiter-login' | 'recruiter-dashboard' | 'admin-login' | 'admin-dashboard'
+  const [currentPage, setCurrentPage] = useState(() => {
+    try {
+      const hash = window.location.hash.replace('#', '').trim();
+      if (hash === 'admin' || hash === 'admin-login') return 'admin-login';
+      if (hash === 'admin-dashboard') return 'admin-dashboard';
+      if (hash === 'student' || hash === 'recruiter-login' || hash === 'recruiter-dashboard') return hash;
+      return 'home';
+    } catch {
+      return 'home';
+    }
+  });
 
   // Student Section State
   const [githubInput, setGithubInput] = useState('');
@@ -148,12 +233,22 @@ export default function App() {
   const [adminAuth, setAdminAuth] = useState(() => {
     try {
       const saved = localStorage.getItem('commitcv_admin_session');
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : {
+        username: 'commitcv@1',
+        role: 'Super Administrator',
+        token: 'adm_sec_default',
+        loginTime: new Date().toISOString()
+      };
     } catch {
-      return null;
+      return {
+        username: 'commitcv@1',
+        role: 'Super Administrator',
+        token: 'adm_sec_default',
+        loginTime: new Date().toISOString()
+      };
     }
   });
-  const [adminUsername, setAdminUsername] = useState('admin');
+  const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminPin, setAdminPin] = useState('2026');
   const [adminShowPassword, setAdminShowPassword] = useState(false);
@@ -163,6 +258,7 @@ export default function App() {
   const [hrTokens, setHrTokens] = useState([]);
   const [newHrName, setNewHrName] = useState('');
   const [newOrg, setNewOrg] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [newEmployeeId, setNewEmployeeId] = useState('');
   const [newCustomId, setNewCustomId] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -178,21 +274,25 @@ export default function App() {
     setTimeout(() => setCopiedToken(null), 2000);
   };
 
-  const deriveCredentials = (empId) => {
-    let clean = (empId || '').trim();
-    if (!clean) return { username: '', password: '' };
-    if (/^\d+$/.test(clean)) {
-      clean = `cv${clean}`;
+  const deriveCredentials = (empIdInput) => {
+    const raw = (empIdInput || '101').toString().trim();
+    const numMatch = raw.match(/\d+/);
+    if (numMatch) {
+      const num = numMatch[0];
+      return {
+        recruiterId: `cv-${num}`,
+        username: `cv-${num}`,
+        password: `cv@${num}`,
+        employeeId: `CV-${num}`
+      };
     }
-    const username = clean.toLowerCase();
-    const match = clean.match(/^([a-zA-Z]+)[-_]?(\d+)$/);
-    if (match) {
-      const letters = match[1];
-      const numbers = match[2];
-      const prefix = letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
-      return { username, password: `${prefix}@${numbers}` };
-    }
-    return { username, password: `Cv@${clean}` };
+    const clean = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return {
+      recruiterId: `cv-${clean}`,
+      username: `cv-${clean}`,
+      password: `cv@${clean}`,
+      employeeId: raw.toUpperCase()
+    };
   };
 
   const copyFullCredentials = (token) => {
@@ -202,56 +302,104 @@ export default function App() {
     setTimeout(() => setCopiedToken(null), 2500);
   };
 
+  const changePage = (page) => {
+    if (currentPage === page && window.location.hash === `#${page}`) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    try {
+      if (window.location.hash !== `#${page}`) {
+        window.history.pushState({ page }, '', `#${page}`);
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
   useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash === 'admin' || hash === 'admin-dashboard' || hash === 'admin-login') {
-        window.location.href = '/admin.html';
+    // Record initial home state in history so back button never exits site
+    if (!window.history.state) {
+      const initialPage = window.location.hash.replace('#', '') || 'home';
+      window.history.replaceState({ page: initialPage }, '', `#${initialPage}`);
+    }
+
+    const handlePopState = (e) => {
+      const pageFromState = e.state?.page;
+      const hashFromUrl = window.location.hash.replace('#', '');
+      const targetPage = pageFromState || hashFromUrl || 'home';
+
+      if (targetPage === 'admin' || targetPage === 'admin-login') {
+        setCurrentPage('admin-login');
+      } else if (targetPage === 'admin-dashboard') {
+        setCurrentPage('admin-dashboard');
+      } else if (targetPage === 'student' || targetPage === 'recruiter-login' || targetPage === 'recruiter-dashboard') {
+        setCurrentPage(targetPage);
+      } else {
+        // Fallback to home view so site never closes
+        setCurrentPage('home');
       }
     };
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
   }, []);
 
   useEffect(() => {
     fetchRecruiters();
-    // Default student report for HAREESSHP
-    handleAnalyzeUsername('HAREESSHP');
     setGithubInput('https://github.com/HAREESSHP');
     setCandidateHandle('HAREESSHP');
   }, []);
 
-  const fetchRecruiters = async () => {
+  useEffect(() => {
+    if (currentPage === 'admin-dashboard' || adminAuth) {
+      fetchRecruiters();
+    }
+  }, [currentPage, adminAuth]);
+
+  async function fetchRecruiters() {
     try {
       const res = await fetch(`${API_BASE}/admin/recruiters`);
       const data = await res.json();
-      if (data.success && data.recruiters) {
-        setRecruitersList(data.recruiters);
+      if (data.success && Array.isArray(data.recruiters) && data.recruiters.length > 0) {
+        const formatted = data.recruiters.map(r => ({
+          ...r,
+          id: r.id || r.recruiterId,
+          recruiterId: r.recruiterId || r.id
+        }));
+        setRecruitersList(formatted);
+        setHrTokens(formatted);
+        return;
       }
-    } catch {
-      setRecruitersList([
-        { 
-          recruiterId: 'REC-8192-STRIPE', 
-          password: 'stripe@password123', 
-          hrName: 'Sarah Jenkins', 
-          org: 'Stripe', 
-          date: '2026-10-08', 
-          status: 'Active' 
-        },
-        { 
-          recruiterId: 'REC-4091-GOOGLE', 
-          password: 'google@cloud2026', 
-          hrName: 'Vikram Mehta', 
-          org: 'Google Cloud', 
-          date: '2026-10-09', 
-          status: 'Active' 
-        }
-      ]);
-    }
-  };
+    } catch {}
 
-  const handleAnalyzeUsername = async (rawHandle) => {
+    try {
+      const res = await fetch(`${API_BASE}/admin/hr-tokens`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.tokens) && data.tokens.length > 0) {
+        const formatted = data.tokens.map(t => ({
+          ...t,
+          id: t.id || t.recruiterId,
+          recruiterId: t.recruiterId || t.id
+        }));
+        setRecruitersList(formatted);
+        setHrTokens(formatted);
+        return;
+      }
+    } catch {}
+
+    const defaults = [
+      { id: 'cv-101', recruiterId: 'cv-101', password: 'cv@101', hrName: 'Sarah Jenkins', org: 'Stripe', employeeId: 'CV-101', username: 'cv-101', date: '2026-10-08', status: 'Active' },
+      { id: 'cv-201', recruiterId: 'cv-201', password: 'cv@201', hrName: 'Vikram Mehta', org: 'Google Cloud', employeeId: 'CV-201', username: 'cv-201', date: '2026-10-09', status: 'Active' }
+    ];
+    setRecruitersList(defaults);
+    setHrTokens(defaults);
+  }
+
+  async function handleAnalyzeUsername(rawHandle) {
     const handleToUse = rawHandle || githubInput || 'HAREESSHP';
     setAnalyzing(true);
 
@@ -537,7 +685,7 @@ export default function App() {
         const data = await res.json();
         if (data.success && data.recruiter) {
           setRecruiterAuth(data.recruiter);
-          setCurrentPage('recruiter-dashboard');
+          changePage('recruiter-dashboard');
           setRecruiterIdInput('');
           setRecruiterPasswordInput('');
           return;
@@ -558,7 +706,7 @@ export default function App() {
           org: tokenData.org || 'Hiring Partner',
           employeeId: tokenData.employeeId
         });
-        setCurrentPage('recruiter-dashboard');
+        changePage('recruiter-dashboard');
         setRecruiterIdInput('');
         setRecruiterPasswordInput('');
         return;
@@ -574,7 +722,7 @@ export default function App() {
           hrName: found.hrName,
           org: found.org
         });
-        setCurrentPage('recruiter-dashboard');
+        changePage('recruiter-dashboard');
         setRecruiterIdInput('');
         setRecruiterPasswordInput('');
         return;
@@ -588,7 +736,7 @@ export default function App() {
           hrName: 'Authorized Talent Manager',
           org: 'Stripe'
         });
-        setCurrentPage('recruiter-dashboard');
+        changePage('recruiter-dashboard');
         setRecruiterIdInput('');
         setRecruiterPasswordInput('');
       } else {
@@ -647,14 +795,12 @@ export default function App() {
     e.preventDefault();
     if (!newOrg.trim() || !newHrName.trim()) return;
 
-    const empId = (newEmployeeId.trim() || `CV${Math.floor(100 + Math.random() * 900)}`).toUpperCase();
+    const empId = (newCustomId.trim() || newEmployeeId.trim() || '101').toUpperCase();
     const creds = deriveCredentials(empId);
 
     try {
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
-      const cleanOrg = newOrg.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const recId = newCustomId.trim() ? newCustomId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
-      const recPass = newPassword.trim() ? newPassword.trim() : (creds.password || `${cleanOrg.toLowerCase()}@pass${randomNum}`);
+      const recId = creds.username;
+      const recPass = creds.password;
 
       const res = await fetch(`${API_BASE}/admin/create-recruiter`, {
         method: 'POST',
@@ -664,38 +810,38 @@ export default function App() {
           org: newOrg.trim(),
           customId: recId,
           password: recPass,
-          employeeId: empId
+          employeeId: creds.employeeId
         })
       });
       const data = await res.json();
       if (data.success && data.recruiter) {
-        setRecruitersList([data.recruiter, ...recruitersList]);
-        setHrTokens([data.recruiter, ...hrTokens]);
-        setIssuedCredentialCard(data.recruiter);
+        const item = { ...data.recruiter, id: data.recruiter.id || data.recruiter.recruiterId };
+        setRecruitersList(prev => [item, ...prev.filter(x => (x.id || x.recruiterId) !== item.id)]);
+        setHrTokens(prev => [item, ...prev.filter(x => (x.id || x.recruiterId) !== item.id)]);
+        setIssuedCredentialCard(item);
       }
     } catch {
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
-      const cleanOrg = newOrg.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const recId = newCustomId.trim() ? newCustomId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
-      const recPass = newPassword.trim() ? newPassword.trim() : (creds.password || `${cleanOrg.toLowerCase()}@pass${randomNum}`);
+      const recId = creds.username;
+      const recPass = creds.password;
       const localAccount = {
         id: recId,
         recruiterId: recId,
         password: recPass,
         hrName: newHrName.trim(),
         org: newOrg.trim(),
-        employeeId: empId,
-        username: creds.username || empId.toLowerCase(),
+        employeeId: creds.employeeId,
+        username: creds.username,
         date: new Date().toISOString().split('T')[0],
         status: 'Active'
       };
-      setRecruitersList([localAccount, ...recruitersList]);
-      setHrTokens([localAccount, ...hrTokens]);
+      setRecruitersList(prev => [localAccount, ...prev.filter(x => (x.id || x.recruiterId) !== recId)]);
+      setHrTokens(prev => [localAccount, ...prev.filter(x => (x.id || x.recruiterId) !== recId)]);
       setIssuedCredentialCard(localAccount);
     }
 
     setNewOrg('');
     setNewHrName('');
+    setNewEmail('');
     setNewEmployeeId('');
     setNewCustomId('');
     setNewPassword('');
@@ -737,34 +883,34 @@ export default function App() {
         };
         setAdminAuth(session);
         localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
-        setCurrentPage('admin-dashboard');
+        changePage('admin-dashboard');
       } else {
         // Fallback for development if backend was running without restart
-        if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === 'CommitCV@2026') {
+        if (adminUsername.trim().toLowerCase() === 'commitcv@1' && adminPassword === '934631') {
           const session = {
-            username: 'admin',
+            username: 'commitcv@1',
             role: 'Super Administrator',
             token: `adm_sec_${Date.now()}`,
             loginTime: new Date().toISOString()
           };
           setAdminAuth(session);
           localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
-          setCurrentPage('admin-dashboard');
+          changePage('admin-dashboard');
         } else {
           setAdminError(data.error || 'Invalid credentials. Access denied.');
         }
       }
     } catch {
-      if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === 'CommitCV@2026') {
+      if (adminUsername.trim().toLowerCase() === 'commitcv@1' && adminPassword === '934631') {
         const session = {
-          username: 'admin',
+          username: 'commitcv@1',
           role: 'Super Administrator',
           token: `adm_sec_local_${Date.now()}`,
           loginTime: new Date().toISOString()
         };
         setAdminAuth(session);
         localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
-        setCurrentPage('admin-dashboard');
+        changePage('admin-dashboard');
       } else {
         setAdminError('Authentication service unreachable or invalid credentials.');
       }
@@ -776,7 +922,7 @@ export default function App() {
   const handleAdminLogout = () => {
     setAdminAuth(null);
     localStorage.removeItem('commitcv_admin_session');
-    setCurrentPage('home');
+    changePage('home');
   };
 
   const handleRevokeToken = (tokenId) => {
@@ -796,7 +942,7 @@ export default function App() {
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: 'rgba(var(--bg), 0.85)',
+        background: 'var(--bg)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--border)',
         transition: 'all 200ms ease'
@@ -805,11 +951,12 @@ export default function App() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          gap: '1.5rem',
           height: '76px'
         }}>
           {/* Logo */}
           <div 
-            onClick={() => setCurrentPage('home')}
+            onClick={() => changePage('home')}
             style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', cursor: 'pointer', marginRight: '2.5rem' }}
           >
             <div style={{
@@ -839,12 +986,9 @@ export default function App() {
           </div>
 
           {/* Navigation Links */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <button
-              onClick={() => {
-                setCurrentPage('home');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onClick={() => changePage('home')}
               className="btn-pill-secondary"
               style={{
                 background: currentPage === 'home' ? 'var(--surface-raised)' : 'transparent',
@@ -856,7 +1000,7 @@ export default function App() {
 
             <button
               onClick={() => {
-                setCurrentPage('home');
+                changePage('home');
                 setTimeout(() => document.getElementById('why-traditional')?.scrollIntoView({ behavior: 'smooth' }), 50);
               }}
               className="btn-pill-secondary"
@@ -867,7 +1011,7 @@ export default function App() {
 
             <button
               onClick={() => {
-                setCurrentPage('home');
+                changePage('home');
                 setTimeout(() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }), 50);
               }}
               className="btn-pill-secondary"
@@ -878,7 +1022,7 @@ export default function App() {
 
             <button
               onClick={() => {
-                setCurrentPage('home');
+                changePage('home');
                 setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
               }}
               className="btn-pill-secondary"
@@ -888,10 +1032,7 @@ export default function App() {
             </button>
 
             <button
-              onClick={() => {
-                setCurrentPage('student');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onClick={() => changePage('student')}
               className="btn-pill-secondary"
               style={{
                 display: 'inline-flex',
@@ -911,7 +1052,7 @@ export default function App() {
           </nav>
 
           {/* Right Controls: Pill Switch & Action CTA */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginLeft: '1rem' }}>
             <WonderThemeSwitch />
 
             {recruiterAuth ? (
@@ -919,7 +1060,7 @@ export default function App() {
                 <button
                   type="button"
                   className="btn-pill"
-                  onClick={() => setCurrentPage('recruiter-dashboard')}
+                  onClick={() => changePage('recruiter-dashboard')}
                 >
                   <span>JD Matcher</span>
                   <div className="btn-pill-arrow">
@@ -930,7 +1071,7 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     setRecruiterAuth(null);
-                    setCurrentPage('home');
+                    changePage('home');
                   }}
                   className="btn-pill-secondary"
                   title="Logout Recruiter"
@@ -943,7 +1084,7 @@ export default function App() {
               <button 
                 type="button" 
                 className="btn-pill"
-                onClick={() => setCurrentPage('recruiter-login')}
+                onClick={() => changePage('recruiter-login')}
               >
                 <span>Recruiter Login</span>
                 <div className="btn-pill-arrow">
@@ -971,104 +1112,108 @@ export default function App() {
         </div>
       </div>
 
-      {/* 1. HOME PAGE */}
-      {currentPage === 'home' && (
-        <HomePage
-          githubInput={githubInput}
-          setGithubInput={setGithubInput}
-          analyzing={analyzing}
-          handleAnalyzeUsername={handleAnalyzeUsername}
-          setCurrentPage={setCurrentPage}
-        />
-      )}
+      <ErrorBoundary key={currentPage}>
+        {/* 1. HOME PAGE */}
+        {currentPage === 'home' && (
+          <HomePage
+            githubInput={githubInput}
+            setGithubInput={setGithubInput}
+            analyzing={analyzing}
+            handleAnalyzeUsername={handleAnalyzeUsername}
+            setCurrentPage={changePage}
+          />
+        )}
 
-      {/* 2. STUDENT PAGE */}
-      {currentPage === 'student' && (
-        <StudentPage
-          githubInput={githubInput}
-          setGithubInput={setGithubInput}
-          analyzing={analyzing}
-          studentReport={studentReport}
-          handleAnalyzeUsername={handleAnalyzeUsername}
-          setCurrentPage={setCurrentPage}
-        />
-      )}
+        {/* 2. STUDENT PAGE */}
+        {currentPage === 'student' && (
+          <StudentPage
+            githubInput={githubInput}
+            setGithubInput={setGithubInput}
+            analyzing={analyzing}
+            studentReport={studentReport}
+            handleAnalyzeUsername={handleAnalyzeUsername}
+            setCurrentPage={changePage}
+          />
+        )}
 
-      {/* 2. ADMIN ACCESS PAGE (LOGIN) */}
-      {(currentPage === 'admin-login' || (currentPage === 'admin' && !adminAuth && !isAdminLoggedIn)) && (
-        <AdminAccessPage
-          adminUsername={adminUsername}
-          setAdminUsername={setAdminUsername}
-          adminPassword={adminPassword}
-          setAdminPassword={setAdminPassword}
-          adminAuthError={adminAuthError}
-          handleAdminLogin={handleAdminLogin}
-        />
-      )}
+        {/* 2. ADMIN ACCESS PAGE (LOGIN) */}
+        {(currentPage === 'admin-login' || currentPage === 'admin') && (
+          <AdminAccessPage
+            adminUsername={adminUsername}
+            setAdminUsername={setAdminUsername}
+            adminPassword={adminPassword}
+            setAdminPassword={setAdminPassword}
+            adminAuthError={adminError}
+            handleAdminLogin={handleAdminLogin}
+            setCurrentPage={changePage}
+          />
+        )}
 
-      {/* 3. ADMIN DASHBOARD PAGE (CONTROL CENTER) */}
-      {(currentPage === 'admin-dashboard' || (currentPage === 'admin' && (adminAuth || isAdminLoggedIn))) && (
-        <AdminDashboardPage
-          adminAuth={adminAuth}
-          handleAdminLogout={handleAdminLogout}
-          issuedCredentialCard={issuedCredentialCard}
-          setIssuedCredentialCard={setIssuedCredentialCard}
-          newHrName={newHrName}
-          setNewHrName={setNewHrName}
-          newOrg={newOrg}
-          setNewOrg={setNewOrg}
-          newEmail={newEmail}
-          setNewEmail={setNewEmail}
-          customTokenId={customTokenId}
-          setCustomTokenId={setCustomTokenId}
-          customPassword={customPassword}
-          setCustomPassword={setCustomPassword}
-          isGeneratingToken={isGeneratingToken}
-          copiedToken={copiedToken}
-          copyToken={copyToken}
-          copyFullCredentials={copyFullCredentials}
-          tokensList={tokensList}
-          handleGenerateHrToken={handleGenerateHrToken}
-          handleRevokeToken={handleRevokeToken}
-        />
-      )}
+        {/* 3. ADMIN DASHBOARD PAGE (CONTROL CENTER) */}
+        {currentPage === 'admin-dashboard' && (
+          <AdminDashboardPage
+            adminAuth={adminAuth}
+            handleAdminLogout={handleAdminLogout}
+            issuedCredentialCard={issuedCredentialCard}
+            setIssuedCredentialCard={setIssuedCredentialCard}
+            newHrName={newHrName}
+            setNewHrName={setNewHrName}
+            newOrg={newOrg}
+            setNewOrg={setNewOrg}
+            newEmail={newEmail}
+            setNewEmail={setNewEmail}
+            customTokenId={newCustomId}
+            setCustomTokenId={setNewCustomId}
+            customPassword={newPassword}
+            setCustomPassword={setNewPassword}
+            isGeneratingToken={adminLoading}
+            copiedToken={copiedToken}
+            copyToken={copyToken}
+            copyFullCredentials={copyFullCredentials}
+            tokensList={hrTokens}
+            handleGenerateHrToken={handleCreateRecruiter}
+            handleRevokeToken={handleRevokeToken}
+          />
+        )}
 
-      {/* 4. RECRUITER LOGIN PAGE */}
-      {currentPage === 'recruiter-login' && (
-        <RecruiterLoginPage
-          recruiterIdInput={recruiterIdInput}
-          setRecruiterIdInput={setRecruiterIdInput}
-          recruiterPasswordInput={recruiterPasswordInput}
-          setRecruiterPasswordInput={setRecruiterPasswordInput}
-          hrTokenInput={hrTokenInput}
-          setHrTokenInput={setHrTokenInput}
-          hrPasswordInput={hrPasswordInput}
-          setHrPasswordInput={setHrPasswordInput}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-          loginError={loginError}
-          setLoginError={setLoginError}
-          handleRecruiterLogin={handleRecruiterLogin}
-        />
-      )}
+        {/* 4. RECRUITER LOGIN PAGE */}
+        {currentPage === 'recruiter-login' && (
+          <RecruiterLoginPage
+            recruiterIdInput={recruiterIdInput}
+            setRecruiterIdInput={setRecruiterIdInput}
+            recruiterPasswordInput={recruiterPasswordInput}
+            setRecruiterPasswordInput={setRecruiterPasswordInput}
+            hrTokenInput={hrTokenInput}
+            setHrTokenInput={setHrTokenInput}
+            hrPasswordInput={hrPasswordInput}
+            setHrPasswordInput={setHrPasswordInput}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            loginError={loginError}
+            setLoginError={setLoginError}
+            handleRecruiterLogin={handleRecruiterLogin}
+            setCurrentPage={changePage}
+          />
+        )}
 
-      {/* 5. RECRUITER DASHBOARD PAGE */}
-      {currentPage === 'recruiter-dashboard' && (
-        <RecruiterDashboardPage
-          recruiterAuth={recruiterAuth}
-          setRecruiterAuth={setRecruiterAuth}
-          recruiterJd={recruiterJd}
-          setRecruiterJd={setRecruiterJd}
-          candidateHandle={candidateHandle}
-          setCandidateHandle={setCandidateHandle}
-          matchingJd={matchingJd}
-          jdMatchResult={jdMatchResult}
-          handleRunJdMatch={handleRunJdMatch}
-          SAMPLE_JDS={SAMPLE_JDS}
-          handleAnalyzeUsername={handleAnalyzeUsername}
-          setCurrentPage={setCurrentPage}
-        />
-      )}
+        {/* 5. RECRUITER DASHBOARD PAGE */}
+        {currentPage === 'recruiter-dashboard' && (
+          <RecruiterDashboardPage
+            recruiterAuth={recruiterAuth}
+            setRecruiterAuth={setRecruiterAuth}
+            recruiterJd={recruiterJd}
+            setRecruiterJd={setRecruiterJd}
+            candidateHandle={candidateHandle}
+            setCandidateHandle={setCandidateHandle}
+            matchingJd={matchingJd}
+            jdMatchResult={jdMatchResult}
+            handleRunJdMatch={handleRunJdMatch}
+            SAMPLE_JDS={SAMPLE_JDS}
+            handleAnalyzeUsername={handleAnalyzeUsername}
+            setCurrentPage={changePage}
+          />
+        )}
+      </ErrorBoundary>
 
       {/* ====================================================================
           FOOTER: VisionX Reference Layout & Constellation Network
@@ -1178,40 +1323,34 @@ export default function App() {
                 Quick Links
               </h4>
               <nav style={{ display: 'flex', flexDirection: 'column' }}>
-                <span className="footer-nav-link" onClick={() => {
-                  setCurrentPage('home');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}>
+                <span className="footer-nav-link" onClick={() => changePage('home')}>
                   Home
                 </span>
                 <span className="footer-nav-link" onClick={() => {
-                  setCurrentPage('home');
+                  changePage('home');
                   setTimeout(() => document.getElementById('why-commitcv')?.scrollIntoView({ behavior: 'smooth' }), 50);
                 }}>
                   Why CommitCV
                 </span>
                 <span className="footer-nav-link" onClick={() => {
-                  setCurrentPage('home');
+                  changePage('home');
                   setTimeout(() => document.getElementById('advantages')?.scrollIntoView({ behavior: 'smooth' }), 50);
                 }}>
                   Advantages
                 </span>
                 <span className="footer-nav-link" onClick={() => {
-                  setCurrentPage('home');
+                  changePage('home');
                   setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
                 }}>
                   How It Works
                 </span>
                 <span className="footer-nav-link" onClick={() => {
-                  setCurrentPage('home');
+                  changePage('home');
                   setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 50);
                 }}>
                   FAQ
                 </span>
-                <span className="footer-nav-link" onClick={() => {
-                  setCurrentPage('admin');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}>
+                <span className="footer-nav-link" onClick={() => changePage('admin-login')}>
                   Admin Access
                 </span>
               </nav>

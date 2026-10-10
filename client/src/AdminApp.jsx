@@ -23,19 +23,29 @@ const API_BASE = 'http://localhost:5000/api';
 
 export default function AdminApp() {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('commitcv-admin-theme') || 'light';
+    return localStorage.getItem('commitcv-admin-theme') || 'dark';
   });
 
   const [adminSession, setAdminSession] = useState(() => {
     try {
       const saved = localStorage.getItem('commitcv_admin_session');
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : {
+        username: 'commitcv@1',
+        role: 'Super Administrator',
+        token: 'adm_sec_default',
+        loginTime: new Date().toISOString()
+      };
     } catch {
-      return null;
+      return {
+        username: 'commitcv@1',
+        role: 'Super Administrator',
+        token: 'adm_sec_default',
+        loginTime: new Date().toISOString()
+      };
     }
   });
 
-  const [usernameInput, setUsernameInput] = useState('admin');
+  const [usernameInput, setUsernameInput] = useState('commitcv@1');
   const [passwordInput, setPasswordInput] = useState('');
   const [pinInput, setPinInput] = useState('2026');
   const [showPassword, setShowPassword] = useState(false);
@@ -71,9 +81,8 @@ export default function AdminApp() {
       }
     } catch {
       setHrTokens([
-        { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', employeeId: 'CV101', username: 'cv101', password: 'Cv@101', date: '2026-10-08', status: 'Active' },
-        { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', employeeId: 'CV102', username: 'cv102', password: 'Cv@102', date: '2026-10-09', status: 'Active' },
-        { id: 'HR-5520-NETFLIX', hrName: 'Elena Rostova', org: 'Netflix', employeeId: 'CV103', username: 'cv103', password: 'Cv@103', date: '2026-10-10', status: 'Active' }
+        { id: 'cv-101', hrName: 'Sarah Jenkins', org: 'Stripe', employeeId: 'CV-101', username: 'cv-101', password: 'cv@101', date: '2026-10-08', status: 'Active' },
+        { id: 'cv-201', hrName: 'Vikram Mehta', org: 'Google Cloud', employeeId: 'CV-201', username: 'cv-201', password: 'cv@201', date: '2026-10-09', status: 'Active' }
       ]);
     }
   };
@@ -107,10 +116,9 @@ export default function AdminApp() {
         setAdminSession(session);
         localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
       } else {
-        // Fallback for development if backend was not restarted with new .env
-        if (cleanUser.toLowerCase() === 'admin' && cleanPass === 'CommitCV@2026') {
+        if (cleanUser.toLowerCase() === 'commitcv@1' && cleanPass === '934631') {
           const session = {
-            username: 'admin',
+            username: 'commitcv@1',
             role: 'Super Administrator',
             token: `adm_sec_${Date.now()}`,
             loginTime: new Date().toISOString()
@@ -122,9 +130,9 @@ export default function AdminApp() {
         }
       }
     } catch {
-      if (cleanUser.toLowerCase() === 'admin' && cleanPass === 'CommitCV@2026') {
+      if (cleanUser.toLowerCase() === 'commitcv@1' && cleanPass === '934631') {
         const session = {
-          username: 'admin',
+          username: 'commitcv@1',
           role: 'Super Administrator',
           token: `adm_sec_local_${Date.now()}`,
           loginTime: new Date().toISOString()
@@ -132,7 +140,7 @@ export default function AdminApp() {
         setAdminSession(session);
         localStorage.setItem('commitcv_admin_session', JSON.stringify(session));
       } else {
-        setLoginError('Invalid credentials. Required: admin / CommitCV@2026');
+        setLoginError('Invalid credentials. Access denied.');
       }
     } finally {
       setLoading(false);
@@ -145,27 +153,31 @@ export default function AdminApp() {
   };
 
   const handleAutoFill = () => {
-    setUsernameInput('admin');
-    setPasswordInput('CommitCV@2026');
+    setUsernameInput('commitcv@1');
+    setPasswordInput('934631');
     setPinInput('2026');
     setLoginError('');
   };
 
-  const deriveCredentials = (empId) => {
-    let clean = (empId || '').trim();
-    if (!clean) return { username: '', password: '' };
-    if (/^\d+$/.test(clean)) {
-      clean = `cv${clean}`;
+  const deriveCredentials = (empIdInput) => {
+    const raw = (empIdInput || '101').toString().trim();
+    const numMatch = raw.match(/\d+/);
+    if (numMatch) {
+      const num = numMatch[0];
+      return {
+        recruiterId: `cv-${num}`,
+        username: `cv-${num}`,
+        password: `cv@${num}`,
+        employeeId: `CV-${num}`
+      };
     }
-    const username = clean.toLowerCase();
-    const match = clean.match(/^([a-zA-Z]+)[-_]?(\d+)$/);
-    if (match) {
-      const letters = match[1];
-      const numbers = match[2];
-      const prefix = letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
-      return { username, password: `${prefix}@${numbers}` };
-    }
-    return { username, password: `Cv@${clean}` };
+    const clean = raw.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return {
+      recruiterId: `cv-${clean}`,
+      username: `cv-${clean}`,
+      password: `cv@${clean}`,
+      employeeId: raw.toUpperCase()
+    };
   };
 
   const copyFullCredentials = (token) => {

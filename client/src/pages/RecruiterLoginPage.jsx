@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, Key, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { Briefcase, Key, Lock, Eye, EyeOff, AlertCircle, ArrowRight, Zap } from 'lucide-react';
 
 export default function RecruiterLoginPage({
   recruiterIdInput,
@@ -17,21 +17,22 @@ export default function RecruiterLoginPage({
   handleRecruiterLogin
 }) {
   return (
-    <main style={{ flex: 1, padding: '4rem 0 6rem 0' }}>
+    <main style={{ flex: 1, padding: '4.5rem 0 6.5rem 0' }}>
       <div className="container" style={{ maxWidth: '580px' }}>
+        
         <div style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',
           padding: '2.5rem',
-          boxShadow: '0 20px 48px rgba(0,0,0,0.12)'
+          boxShadow: '0 24px 50px rgba(0,0,0,0.14)'
         }}>
           <div className="section-tag">
             <Briefcase size={12} />
             <span>RECRUITER AUTHENTICATION</span>
           </div>
 
-          <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)' }}>
+          <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', color: 'var(--text)' }}>
             Recruiter Portal Login
           </h1>
           <p style={{ color: 'var(--muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
@@ -128,7 +129,8 @@ export default function RecruiterLoginPage({
               </div>
             )}
 
-            <button type="submit" className="btn-pill" style={{ marginTop: '0.5rem' }}>
+            <button type="submit" className="btn-pill" style={{ marginTop: '0.5rem', justifyContent: 'center' }}>
+              <Zap size={16} />
               <span>Login to Recruiter Dashboard</span>
               <div className="btn-pill-arrow">
                 <ArrowRight size={14} />
@@ -159,7 +161,7 @@ export default function RecruiterLoginPage({
                   }}
                 >
                   <span>Stripe: <strong>REC-8192-STRIPE</strong> / <code>stripe@password123</code></span>
-                  <span style={{ color: 'var(--accent)' }}>Fill Credentials &rarr;</span>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Fill Credentials &rarr;</span>
                 </button>
 
                 <button
@@ -173,13 +175,9 @@ export default function RecruiterLoginPage({
                   }}
                 >
                   <span>Google: <strong>REC-4091-GOOGLE</strong> / <code>google@cloud2026</code></span>
-                  <span style={{ color: 'var(--accent)' }}>Fill Credentials &rarr;</span>
+                  <span style={{ color: 'var(--accent)', fontWeight: 700 }}>Fill Credentials &rarr;</span>
                 </button>
               </div>
-
-              <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
-                Need new credentials? Create unique IDs and passwords in the <strong>Admin Access</strong> portal.
-              </p>
             </div>
           </form>
         </div>
