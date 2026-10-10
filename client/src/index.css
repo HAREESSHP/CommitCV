@@ -34,13 +34,14 @@
 
   /* Typography Stacks */
   --font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --font-heading: 'Space Grotesk', -apple-system, sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Spatial & Layout Variables */
   --max-width: 1280px;
   --page-pad: clamp(1.25rem, 4vw, 3rem);
-  --section-pad: clamp(4.5rem, 7vw, 7rem);
+  --section-pad: clamp(2rem, 3.5vw, 3.25rem);
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -430,4 +431,69 @@ a {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
+}
+
+/* Entrance & Typewriter Animation Keyframes */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up-1 {
+  animation: slideUpFade 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-2 {
+  animation: slideUpFade 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-3 {
+  animation: slideUpFade 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+  opacity: 0;
+}
+
+.animate-slide-up-photo {
+  animation: slideUpFade 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+  opacity: 0;
+}
+
+@keyframes blinkCaret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 4px;
+  height: 0.9em;
+  background-color: var(--accent);
+  margin-left: 6px;
+  vertical-align: baseline;
+  border-radius: 1px;
+  animation: blinkCaret 0.75s step-end infinite;
+}
+
+/* Card Fall-In Entrance Animation */
+@keyframes fallIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-45px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fall-card {
+  animation: fallIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
 }
