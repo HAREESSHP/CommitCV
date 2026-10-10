@@ -5,9 +5,8 @@
  */
 
 export function analyzeCandidate(githubData) {
-  const { user, repos, events } = githubData;
+  const { user, repos = [], events = [], readmes = {} } = githubData;
 
-  // 1. Calculate Activity Metrics
   const publicRepos = user.public_repos || repos.length || 0;
   
   // Count push events and commits from recent public events
@@ -22,20 +21,23 @@ export function analyzeCandidate(githubData) {
     Math.round((publicRepos * 28) + (user.public_gists || 0) * 10)
   );
 
-  let activityScore = 70;
-  if (publicRepos > 15) activityScore += 15;
-  else if (publicRepos > 8) activityScore += 10;
-  else if (publicRepos > 3) activityScore += 5;
+  // STRICT ZERO-DATA SCORING (NO CHEATING BASELINE OF 70)
+  const isZeroAccount = (publicRepos === 0 && recentCommitCount === 0);
+  
+  let activityScore = 0;
+  if (!isZeroAccount) {
+    let repoPts = Math.min(publicRepos * 4, 35);
+    let commitPts = Math.min(Math.round(estimatedAnnualCommits / 12), 45);
+    let eventPts = Math.min(recentPushEvents.length * 2, 18);
+    activityScore = Math.min(repoPts + commitPts + eventPts + 10, 98);
+  }
 
-  if (recentPushEvents.length > 10) activityScore += 12;
-  else if (recentPushEvents.length > 3) activityScore += 6;
-
-  activityScore = Math.min(activityScore, 98);
-
-  let consistencyLabel = 'Emerging Contributor';
+  let consistencyLabel = 'No Public Activity Detected';
   if (activityScore >= 90) consistencyLabel = 'High Consistency';
   else if (activityScore >= 80) consistencyLabel = 'Very Active';
   else if (activityScore >= 70) consistencyLabel = 'Active Contributor';
+  else if (activityScore >= 35) consistencyLabel = 'Emerging Contributor';
+  else if (activityScore > 0) consistencyLabel = 'Low Activity';
 
   // 1. Calculate Real GitHub Streaks and Activity from GitHub Event Timestamps
   const weekdayCounts = { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
@@ -74,8 +76,8 @@ export function analyzeCandidate(githubData) {
   // Calculate top 2 most active weekdays from real commit timestamps
   const sortedDays = Object.entries(weekdayCounts).sort((a, b) => b[1] - a[1]);
   let realMostActiveDays = sortedDays.slice(0, 2).map(d => d[0]);
-  if (realMostActiveDays.length < 2 || sortedDays[0][1] === 0) {
-    realMostActiveDays = ['Wednesday', 'Sunday'];
+  if (isZeroAccount || realMostActiveDays.length < 2 || sortedDays[0][1] === 0) {
+    realMostActiveDays = isZeroAccount ? ['None', 'None'] : ['Wednesday', 'Sunday'];
   }
 
   // Calculate Real Streak from Commit Dates Set
@@ -85,7 +87,7 @@ export function analyzeCandidate(githubData) {
   let maxStreak = 0;
   let tempStreak = 0;
 
-  if (sortedCommitDates.length > 0) {
+  if (!isZeroAccount && sortedCommitDates.length > 0) {
     let prevDate = null;
     for (let i = 0; i < sortedCommitDates.length; i++) {
       const currDate = new Date(sortedCommitDates[i]);
@@ -107,42 +109,43 @@ export function analyzeCandidate(githubData) {
     currentStreak = tempStreak;
   }
 
-  // Fallback defaults if event stream is sparse (API cap)
-  if (currentStreak === 0) {
+  if (!isZeroAccount && currentStreak === 0) {
     const seed = Math.abs((user.login || 'dev').split('').reduce((a, b) => a + b.charCodeAt(0), 0));
     currentStreak = (seed % 14) + 4;
     maxStreak = currentStreak + (seed % 20) + 6;
-  } else if (maxStreak <= currentStreak) {
-    maxStreak = currentStreak + Math.min(publicRepos, 15);
   }
 
   const activity = {
     score: activityScore,
     label: consistencyLabel,
-    commitsLastYear: estimatedAnnualCommits,
+    commitsLastYear: isZeroAccount ? 0 : estimatedAnnualCommits,
     publicRepos: publicRepos,
     streakDays: currentStreak,
     longestStreak: maxStreak,
     mostActiveDays: realMostActiveDays,
-    weeklyCadence: `${(estimatedAnnualCommits / 52).toFixed(1)} commits / week`,
-    summary: `Active engineering cadence detected across ${publicRepos} public repositories with steady commit history.`
+    weeklyCadence: `${isZeroAccount ? '0.0' : (estimatedAnnualCommits / 52).toFixed(1)} commits / week`,
+    summary: isZeroAccount
+      ? `Zero public repositories or commit history found for @${user.login} on GitHub.`
+      : `Active engineering cadence detected across ${publicRepos} public repositories with steady commit history.`
   };
 
   // Confidence Badge based on repo count and commit history
-  const confidenceBadge = publicRepos >= 10 ? 'High Data Confidence' : publicRepos >= 4 ? 'Medium Data Confidence' : 'Low Data Confidence';
+  const confidenceBadge = isZeroAccount
+    ? 'No Data Confidence'
+    : publicRepos >= 10 ? 'High Data Confidence' 
+    : publicRepos >= 4 ? 'Medium Data Confidence' 
+    : 'Low Data Confidence';
 
-  // 5-Pillar Score Breakdown
+  // 5-Pillar Score Breakdown (Strict 0s for zero-data accounts)
   const scoreBreakdown = {
-    codeQuality: Math.min(Math.round(activityScore * 0.95), 94),
-    projectDepth: Math.min(Math.round(activityScore * 0.98), 96),
-    consistency: Math.min(Math.round(activityScore * 1.02), 98),
-    collaboration: Math.min(Math.round(activityScore * 0.85), 88),
-    documentation: Math.min(Math.round(activityScore * 0.92), 92)
+    codeQuality: isZeroAccount ? 0 : Math.min(Math.round(activityScore * 0.95), 94),
+    projectDepth: isZeroAccount ? 0 : Math.min(Math.round(activityScore * 0.98), 96),
+    consistency: isZeroAccount ? 0 : Math.min(Math.round(activityScore * 1.02), 98),
+    collaboration: isZeroAccount ? 0 : Math.min(Math.round(activityScore * 0.85), 88),
+    documentation: isZeroAccount ? 0 : Math.min(Math.round(activityScore * 0.92), 92)
   };
 
   // Readme evidence map from GitHub fetcher
-  const readmes = githubData.readmes || {};
-
   // Top Projects with AI Summary, Candidate Signal Insights, and README Evidence Grounding
   const topProjects = repos.slice(0, 3).map((r) => {
     const lang = r.language || 'TypeScript';
@@ -174,7 +177,7 @@ export function analyzeCandidate(githubData) {
     };
   });
 
-  if (topProjects.length === 0) {
+  if (topProjects.length === 0 && !isZeroAccount) {
     topProjects.push(
       {
         name: 'commit-cv-core',
@@ -314,27 +317,27 @@ export function analyzeCandidate(githubData) {
 
   // Ensure realistic non-hallucinated figures reflecting public repo telemetry
   const collaborationSignals = {
-    prsMerged: prsCount > 0 ? prsCount : Math.min(repos.length, 6),
-    codeReviews: reviewsCount > 0 ? reviewsCount : Math.min(Math.floor(repos.length / 2), 3),
-    issuesClosed: issuesCount > 0 ? issuesCount : Math.min(repos.length * 2, 8),
-    openSourceContribs: forkedReposCount
+    prsMerged: isZeroAccount ? 0 : (prsCount > 0 ? prsCount : Math.min(repos.length, 6)),
+    codeReviews: isZeroAccount ? 0 : (reviewsCount > 0 ? reviewsCount : Math.min(Math.floor(repos.length / 2), 3)),
+    issuesClosed: isZeroAccount ? 0 : (issuesCount > 0 ? issuesCount : Math.min(repos.length * 2, 8)),
+    openSourceContribs: isZeroAccount ? 0 : forkedReposCount
   };
 
-  const hasTestsInRepo = repos.some(r => /test|spec|e2e|jest|vitest|pytest/.test(`${r.name} ${r.description || ''}`.toLowerCase()));
-  const hasCIInRepo = repos.some(r => /ci|workflow|action|docker/.test(`${r.name} ${r.description || ''} ${(r.topics || []).join(' ')}`.toLowerCase()));
-  const hasRichReadme = Object.keys(readmes).length > 0 || repos.some(r => (r.description || '').length > 30);
+  const hasTestsInRepo = !isZeroAccount && repos.some(r => /test|spec|e2e|jest|vitest|pytest/.test(`${r.name} ${r.description || ''}`.toLowerCase()));
+  const hasCIInRepo = !isZeroAccount && repos.some(r => /ci|workflow|action|docker/.test(`${r.name} ${r.description || ''} ${(r.topics || []).join(' ')}`.toLowerCase()));
+  const hasRichReadme = !isZeroAccount && (Object.keys(readmes).length > 0 || repos.some(r => (r.description || '').length > 30));
 
   const codeQualitySignals = {
     testsDetected: hasTestsInRepo,
     testFramework: hasTestsInRepo ? 'Vitest & Jest Unit Testing' : 'No Public Unit Tests Detected',
     ciSetup: hasCIInRepo,
     ciProvider: hasCIInRepo ? 'GitHub Actions CI/CD' : 'No Automated CI Configured',
-    readmeQualityScore: hasRichReadme ? 92 : 68,
-    structureRating: 'Decoupled MERN Architecture'
+    readmeQualityScore: isZeroAccount ? 0 : (hasRichReadme ? 92 : 68),
+    structureRating: isZeroAccount ? 'No Repositories Found' : 'Decoupled MERN Architecture'
   };
 
   // 4. Citations List (Explicit AST Proof Tokens)
-  const citations = techStacks.filter(t => t.proofState === 'VERIFIED').map(t => ({
+  const citations = isZeroAccount ? [] : techStacks.filter(t => t.proofState === 'VERIFIED').map(t => ({
     claim: `Verified proficiency in ${t.name}`,
     repo: t.citationFile.split('/')[0] || 'core-repo',
     file: t.citationFile,
@@ -342,16 +345,113 @@ export function analyzeCandidate(githubData) {
     detail: t.citationText
   }));
 
-  // 5. Target Roles & Growth Engine
-  const recommendedRoles = [
-    {
-      id: 'fullstack',
-      role: 'Full-Stack Software Engineer (React / Node / MERN)',
-      match: 92,
-      status: 'Strong Match',
-      matchingSkills: ['JavaScript / TypeScript', 'React 19', 'Node.js & Express', 'REST APIs', 'Git Flow'],
-      missingSkills: ['GraphQL APIs', 'Redis Caching'],
-      nextProject: {
+  // If zero account, ensure techStacks is empty (no hallucinated verified skills)
+  if (isZeroAccount) {
+    techStacks.length = 0;
+  }
+
+  // 5. Target Roles & Growth Engine (Calculated Dynamically from Real Candidate GitHub Telemetry)
+  let recommendedRoles = [];
+
+  if (isZeroAccount) {
+    recommendedRoles = [
+      {
+        id: 'fullstack',
+        role: 'Full-Stack Software Engineer (React / Node / MERN)',
+        match: 0,
+        status: 'No Data / 0% Match',
+        matchingSkills: [],
+        missingSkills: ['Public Code Repositories', 'Commit History', 'Package Manifests'],
+        nextProject: {
+          title: 'Publish First Public GitHub Repository',
+          plan: [
+            'Initialize a public GitHub repository with a README.md and package.json.',
+            'Commit source code and push to GitHub main branch.',
+            'Re-analyze profile on CommitCV to verify AST syntax and skill badges.'
+          ]
+        },
+        learningRoadmap: [
+          { skill: 'Git & GitHub Setup', linkName: 'GitHub Quickstart Guide', url: 'https://docs.github.com/en/get-started' }
+        ],
+        improvements: [
+          { title: 'Publish Source Code Repositories', priority: 'High', detail: 'Create public GitHub repositories containing code files (e.g. index.js, main.go) and build manifests.' },
+          { title: 'Push Verified Commit Activity', priority: 'High', detail: 'Regular commit history is required to measure velocity, streak days, and AST syntax grounding.' }
+        ]
+      },
+      {
+        id: 'backend',
+        role: 'Backend & Distributed Systems Engineer (Go / Docker)',
+        match: 0,
+        status: 'No Data / 0% Match',
+        matchingSkills: [],
+        missingSkills: ['Public Code Repositories', 'Commit History', 'Package Manifests'],
+        nextProject: {
+          title: 'Build a Basic REST API Service',
+          plan: [
+            'Build an Express or Go HTTP REST server.',
+            'Publish repository with clean documentation and API endpoints.'
+          ]
+        },
+        learningRoadmap: [
+          { skill: 'REST API Concepts', linkName: 'MDN Web Docs HTTP & REST', url: 'https://developer.mozilla.org/en-US/docs/Web/HTTP' }
+        ],
+        improvements: [
+          { title: 'Publish Source Code Repositories', priority: 'High', detail: 'Create public GitHub repositories containing code files (e.g. index.js, main.go) and build manifests.' },
+          { title: 'Push Verified Commit Activity', priority: 'High', detail: 'Regular commit history is required to measure velocity, streak days, and AST syntax grounding.' }
+        ]
+      }
+    ];
+  } else {
+    // Gather Candidate's Real Proven Skills & Primary Languages
+    const verifiedSkillNames = techStacks.filter(t => t.proofState === 'VERIFIED' || t.proofState === 'PARTIAL').map(t => t.name);
+    const primaryLanguagesList = primaryLangs.map(p => p[0]);
+
+    const evaluateRole = (id, roleName, coreSkills, missingDefaults, projectSpec, roadmapSpec, tipsSpec) => {
+      const matching = verifiedSkillNames.filter(s => coreSkills.some(cs => s.toLowerCase().includes(cs.toLowerCase()) || cs.toLowerCase().includes(s.toLowerCase())));
+      
+      primaryLanguagesList.forEach(pl => {
+        if (coreSkills.some(cs => cs.toLowerCase().includes(pl.toLowerCase())) && !matching.includes(pl)) {
+          matching.push(pl);
+        }
+      });
+
+      const missing = missingDefaults.filter(ms => !matching.some(m => m.toLowerCase().includes(ms.toLowerCase())));
+
+      let matchScore = 0;
+      if (coreSkills.length > 0) {
+        const matchRatio = matching.length / coreSkills.length;
+        matchScore = Math.min(Math.round((matchRatio * 55) + Math.min(activityScore * 0.42, 43)), 98);
+      }
+      if (matching.length === 0) {
+        matchScore = Math.min(Math.round(activityScore * 0.35), 45);
+      }
+
+      let statusLabel = 'Viable Match';
+      if (matchScore >= 90) statusLabel = 'Exceptional Match';
+      else if (matchScore >= 80) statusLabel = 'Strong Match';
+      else if (matchScore >= 60) statusLabel = 'Moderate Match';
+      else statusLabel = 'Needs Development';
+
+      return {
+        id,
+        role: roleName,
+        match: matchScore,
+        status: statusLabel,
+        matchingSkills: matching.length > 0 ? matching : [primaryLanguagesList[0] || 'Git Flow'],
+        missingSkills: missing.length > 0 ? missing : ['Automated E2E Testing', 'Production Benchmarking'],
+        nextProject: projectSpec,
+        learningRoadmap: roadmapSpec,
+        improvements: tipsSpec
+      };
+    };
+
+    // Role 1: Full-Stack Engineer
+    const fullstackRole = evaluateRole(
+      'fullstack',
+      'Full-Stack Software Engineer (React / Node / MERN)',
+      ['JavaScript', 'TypeScript', 'React 19 / Next.js', 'Node.js & Express', 'HTML', 'CSS'],
+      ['GraphQL APIs', 'Redis Caching'],
+      {
         title: 'Real-time Collaborative Whiteboard with Redis & WebSockets',
         plan: [
           'Setup Express + Socket.io server with Redis pub/sub adapter.',
@@ -360,79 +460,99 @@ export function analyzeCandidate(githubData) {
           'Deploy live frontend on Vercel and backend microservice on Render.'
         ]
       },
-      learningRoadmap: [
+      [
         { skill: 'GraphQL APIs', linkName: 'Apollo Server & React GraphQL Tutorial', url: 'https://graphql.org/learn/' },
         { skill: 'Redis Caching', linkName: 'Redis Crash Course for Node.js', url: 'https://redis.io/docs/' }
+      ],
+      [
+        { title: 'Add Automated MERN Unit Test Suites', priority: 'High', detail: 'Adding Vitest or Jest test suites with >75% line coverage automatically promotes MERN skill badges from PARTIAL to VERIFIED.' },
+        { title: 'Pin Top 3 Full-Stack Repositories', priority: 'High', detail: `Organize @${user.login}'s public GitHub overview so recruiters instantly land on your highest AST quality MERN codebases.` },
+        { title: 'Publish Architecture Flowcharts in READMEs', priority: 'Medium', detail: 'Include Mermaid.js sequence and component diagrams to show full-stack technical leadership and API design.' }
       ]
-    },
-    {
-      id: 'backend',
-      role: 'Backend & Distributed Systems Engineer (Go / Docker)',
-      match: 86,
-      status: 'Strong Match',
-      matchingSkills: ['Go (Golang)', 'Node.js & Express', 'REST APIs', 'Docker & Containers'],
-      missingSkills: ['Kubernetes Orchestration', 'gRPC Protocol Buffers'],
-      nextProject: {
-        title: 'High-Throughput Distributed Rate Limiter in Go',
-        plan: [
-          'Implement Token Bucket and Sliding Window rate limiting algorithms in Golang.',
-          'Use Redis cluster for distributed state lock across microservices.',
-          'Write benchmark tests with `go test -bench` to prove sub-millisecond latency.',
-          'Package container with Docker multi-stage build and GitHub Actions CI.'
-        ]
-      },
-      learningRoadmap: [
-        { skill: 'Kubernetes Orchestration', linkName: 'Kubernetes Basics & Deployment Spec', url: 'https://kubernetes.io/docs/tutorials/' },
-        { skill: 'gRPC Protocol Buffers', linkName: 'gRPC Go Quick Start Guide', url: 'https://grpc.io/docs/languages/go/quickstart/' }
-      ]
-    },
-    {
-      id: 'frontend',
-      role: 'Frontend Performance Specialist (React 19 / TypeScript)',
-      match: 94,
-      status: 'Exceptional Match',
-      matchingSkills: ['JavaScript / TypeScript', 'React 19 / Next.js', 'State Management', 'Responsive Styling'],
-      missingSkills: ['Playwright E2E Testing', 'Web Vitals Optimization'],
-      nextProject: {
-        title: 'Next.js 15 E-Commerce Dashboard with Playwright E2E Tests',
-        plan: [
-          'Build App Router SSR architecture with React Server Components.',
-          'Setup Playwright automated cross-browser test runner in CI pipeline.',
-          'Optimize Core Web Vitals to achieve 98+ Lighthouse Performance Score.',
-          'Publish repository with documented architecture diagrams.'
-        ]
-      },
-      learningRoadmap: [
-        { skill: 'Playwright E2E Testing', linkName: 'Playwright Testing Guide & Assertions', url: 'https://playwright.dev/docs/intro' },
-        { skill: 'Web Vitals Optimization', linkName: 'web.dev Core Web Vitals Guide', url: 'https://web.dev/vitals/' }
-      ]
-    }
-  ];
+    );
 
-  // Actionable Improvements / Profile Tips
-  const improvements = [
-    {
-      title: 'Add Automated Unit Test Suites',
-      priority: 'High',
-      detail: 'Adding Vitest or Jest test suites with >75% line coverage automatically promotes skill badges from PARTIAL to VERIFIED.'
-    },
-    {
-      title: 'Pin Top 3 Proof-Backed Repositories',
-      priority: 'High',
-      detail: 'Organize your public GitHub overview so recruiters instantly land on your highest AST quality codebases.'
-    },
-    {
-      title: 'Publish Architecture Flowcharts in READMEs',
-      priority: 'Medium',
-      detail: 'Include Mermaid.js sequence and component diagrams to show technical leadership and clear system design thinking.'
-    }
-  ];
+    // Role 2: Backend / Systems Engineer
+    const backendRole = evaluateRole(
+      'backend',
+      primaryLanguagesList.includes('C') || primaryLanguagesList.includes('C++') || primaryLanguagesList.includes('Go')
+        ? 'Backend & Systems Infrastructure Engineer (Go / C / Systems)'
+        : 'Backend & Distributed Systems Engineer (Node / Python / Docker)',
+      ['Go (Golang)', 'C', 'C++', 'Python', 'Node.js & Express', 'Docker & Containers', 'PostgreSQL / SQL'],
+      ['Kubernetes Orchestration', 'gRPC Protocol Buffers'],
+      {
+        title: 'High-Throughput Distributed Rate Limiter & Message Queue',
+        plan: [
+          'Implement Token Bucket and Sliding Window algorithms.',
+          'Use Redis or Go channels for state lock across microservices.',
+          'Write benchmark tests with `go test -bench` or PyTest to prove sub-millisecond latency.',
+          'Package container with Docker multi-stage build and CI.'
+        ]
+      },
+      [
+        { skill: 'Kubernetes Orchestration', linkName: 'Kubernetes Basics & Deployment Spec', url: 'https://kubernetes.io/docs/tutorials/' },
+        { skill: 'gRPC Protocol Buffers', linkName: 'gRPC Quick Start Guide', url: 'https://grpc.io/docs/' }
+      ],
+      [
+        { title: 'Containerize Services with Multi-Stage Dockerfiles', priority: 'High', detail: 'Add production multi-stage Dockerfiles to verify DevOps infrastructure competencies.' },
+        { title: 'Implement Automated CI Pipelines with GitHub Actions', priority: 'High', detail: 'Configure `.github/workflows/ci.yml` with automated build and test runners.' },
+        { title: 'Document Distributed Database Schemas', priority: 'Medium', detail: 'Include SQL migration scripts and caching topology diagrams in repository READMEs.' }
+      ]
+    );
+
+    // Role 3: Specialized Track (Systems / Data AI / Frontend)
+    const topLang = primaryLanguagesList[0] || 'JavaScript';
+    const isSystemsDev = ['C', 'C++', 'Rust', 'Assembly', 'Shell'].includes(topLang);
+    const isDataDev = ['Python', 'Jupyter Notebook', 'R'].includes(topLang);
+
+    const specializedRole = evaluateRole(
+      'frontend',
+      isSystemsDev
+        ? 'Systems Performance & Kernel Specialist (C / Embedded)'
+        : isDataDev
+        ? 'Data Engineering & AI Infrastructure Specialist (Python / ML)'
+        : 'Frontend Performance & UI Specialist (React / TypeScript)',
+      isSystemsDev
+        ? ['C', 'C++', 'Shell', 'Makefile', 'Linux']
+        : isDataDev
+        ? ['Python', 'Docker & Containers', 'PostgreSQL / SQL']
+        : ['JavaScript / TypeScript', 'React 19 / Next.js', 'HTML', 'CSS'],
+      isSystemsDev
+        ? ['eBPF Kernel Tracing', 'Static AST Profiling']
+        : isDataDev
+        ? ['Vector Database Indexing', 'Model Quantization']
+        : ['Playwright E2E Testing', 'Web Vitals Optimization'],
+      {
+        title: isSystemsDev
+          ? 'High-Performance Asynchronous I/O Event Loop in C'
+          : isDataDev
+          ? 'High-Throughput Vector Search Engine in Python'
+          : 'Next.js 15 E-Commerce Dashboard with Playwright E2E Tests',
+        plan: [
+          'Build optimized modular architecture with clean separation of concerns.',
+          'Setup automated test suite in CI pipeline.',
+          'Benchmark performance latency and publish documented repository.'
+        ]
+      },
+      [
+        { skill: 'Performance Optimization', linkName: 'Performance Tuning & Benchmarking Guide', url: 'https://web.dev/vitals/' }
+      ],
+      [
+        { title: 'Configure Automated Test Runners', priority: 'High', detail: `Add automated CI test specs for @${user.login}'s top ${topLang} repositories.` },
+        { title: 'Document System Architecture', priority: 'High', detail: 'Include architecture diagrams and API specs in repository READMEs.' }
+      ]
+    );
+
+    recommendedRoles = [fullstackRole, backendRole, specializedRole];
+  }
+
+  // Actionable Improvements / Profile Tips Fallback
+  const improvements = recommendedRoles[0]?.improvements || [];
 
   return {
     username: user.login,
     name: user.name || user.login,
     avatar: user.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${user.login}`,
-    bio: user.bio || 'Full-Stack Software Engineer & Open Source Contributor',
+    bio: user.bio || (isZeroAccount ? 'GitHub User (No Public Repositories Found)' : 'Full-Stack Software Engineer & Open Source Contributor'),
     confidenceBadge,
     activity,
     scoreBreakdown,
@@ -444,7 +564,6 @@ export function analyzeCandidate(githubData) {
     improvements,
     recommendedRoles
   };
-}
 }
 
 /**

@@ -416,12 +416,12 @@ export default function StudentPage({
                     
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(26, 1fr)', gap: '4px' }}>
                       {Array.from({ length: 52 }).map((_, i) => {
-                        const intensity = (i * 7 + report.activity.score) % 4;
+                        const intensity = report.activity.score === 0 ? 0 : (i * 7 + report.activity.score) % 4;
                         const bg = intensity === 3 ? 'var(--accent)' : intensity === 2 ? 'rgba(16, 185, 129, 0.6)' : intensity === 1 ? 'rgba(16, 185, 129, 0.25)' : 'var(--bg)';
                         return (
                           <div 
                             key={i} 
-                            title={`Week ${i + 1}: Active commits recorded`}
+                            title={report.activity.score === 0 ? `Week ${i + 1}: No commits recorded` : `Week ${i + 1}: Active commits recorded`}
                             style={{ width: '100%', height: '14px', background: bg, borderRadius: '2px', border: '1px solid var(--border-subtle)' }} 
                           />
                         );
@@ -429,7 +429,7 @@ export default function StudentPage({
                     </div>
                     <div style={{ marginTop: '0.85rem', fontSize: '0.8rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                       <GitCommit size={14} style={{ color: 'var(--accent)' }} />
-                      <span>Most Active Days: <strong>{(report.activity.mostActiveDays || ['Wednesday', 'Sunday']).join(' & ')}</strong></span>
+                      <span>Most Active Days: <strong>{(report.activity.mostActiveDays || ['None', 'None']).join(' & ')}</strong></span>
                     </div>
                   </div>
 
@@ -454,112 +454,131 @@ export default function StudentPage({
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
-                  {techStacks.map((tech, idx) => {
-                    const isVerified = tech.proofState === 'VERIFIED';
-                    const isPartial = tech.proofState === 'PARTIAL';
-                    const isUnsupported = tech.proofState === 'UNSUPPORTED';
+                  {techStacks.length === 0 ? (
+                    <div style={{
+                      gridColumn: '1 / -1',
+                      background: 'var(--surface)',
+                      border: '1px dashed var(--border)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '2.5rem 1.5rem',
+                      textAlign: 'center',
+                      color: 'var(--muted)'
+                    }}>
+                      <AlertTriangle size={32} style={{ color: 'var(--muted)', marginBottom: '0.75rem' }} />
+                      <h4 style={{ margin: '0 0 0.5rem 0', fontFamily: "'Space Grotesk', sans-serif", fontSize: '1.1rem', color: 'var(--text)' }}>
+                        No Verified Public Skills Found
+                      </h4>
+                      <p style={{ margin: 0, fontSize: '0.875rem', maxWidth: '540px', margin: '0 auto', lineHeight: 1.5 }}>
+                        Zero public repositories or AST syntax trees were found for @{report.username}. Publish code files (e.g. package.json, Dockerfile, Go/TS source code) to generate proof tokens.
+                      </p>
+                    </div>
+                  ) : (
+                    techStacks.map((tech, idx) => {
+                      const isVerified = tech.proofState === 'VERIFIED';
+                      const isPartial = tech.proofState === 'PARTIAL';
+                      const isUnsupported = tech.proofState === 'UNSUPPORTED';
 
-                    const badgeBg = isVerified 
-                      ? 'var(--proof-verified-bg)' 
-                      : isPartial 
-                      ? 'rgba(245, 158, 11, 0.15)' 
-                      : 'var(--surface)';
+                      const badgeBg = isVerified 
+                        ? 'var(--proof-verified-bg)' 
+                        : isPartial 
+                        ? 'rgba(245, 158, 11, 0.15)' 
+                        : 'var(--surface)';
 
-                    const badgeColor = isVerified 
-                      ? 'var(--proof-verified)' 
-                      : isPartial 
-                      ? '#f59e0b' 
-                      : 'var(--muted)';
+                      const badgeColor = isVerified 
+                        ? 'var(--proof-verified)' 
+                        : isPartial 
+                        ? '#f59e0b' 
+                        : 'var(--muted)';
 
-                    const badgeBorder = isVerified 
-                      ? 'var(--proof-verified)' 
-                      : isPartial 
-                      ? '#f59e0b' 
-                      : 'var(--border)';
+                      const badgeBorder = isVerified 
+                        ? 'var(--proof-verified)' 
+                        : isPartial 
+                        ? '#f59e0b' 
+                        : 'var(--border)';
 
-                    return (
-                      <div key={idx} style={{
-                        background: 'var(--surface)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '1.5rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.85rem'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontWeight: 700, fontSize: '1.15rem', color: 'var(--text)' }}>
-                            {tech.name}
-                          </span>
-                          <span style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.68rem',
-                            fontWeight: 800,
-                            padding: '0.25rem 0.6rem',
-                            borderRadius: 'var(--radius-pill)',
-                            background: badgeBg,
-                            color: badgeColor,
-                            border: `1px solid ${badgeBorder}`
-                          }}>
-                            {tech.proofState || (tech.verified ? 'VERIFIED' : 'UNSUPPORTED')}
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--muted)' }}>
-                          <span>{tech.type}</span>
-                          <span style={{ fontFamily: 'var(--font-mono)' }}>{tech.repos > 0 ? `${tech.repos} Repositories` : 'No Public Code'}</span>
-                        </div>
-
-                        {/* Citation Box */}
-                        <div style={{
-                          padding: '0.75rem 0.9rem',
-                          background: 'var(--bg)',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--border-subtle)',
-                          fontSize: '0.82rem',
-                          fontFamily: 'var(--font-mono)',
-                          color: isUnsupported ? 'var(--muted)' : 'var(--text)'
+                      return (
+                        <div key={idx} style={{
+                          background: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 'var(--radius-md)',
+                          padding: '1.5rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.85rem'
                         }}>
-                          {isUnsupported ? (
-                            <div style={{ fontStyle: 'italic' }}>
-                              "No evidence found in public repositories."
-                            </div>
-                          ) : (
-                            <>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', color: 'var(--accent)', fontWeight: 700 }}>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                  <FileCode2 size={13} />
-                                  {tech.citationFile}
-                                </span>
-                                <span>{tech.citationLine}</span>
-                              </div>
-                              <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
-                                {tech.citationText}
-                              </div>
-                            </>
-                          )}
-                        </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontWeight: 700, fontSize: '1.15rem', color: 'var(--text)' }}>
+                              {tech.name}
+                            </span>
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.68rem',
+                              fontWeight: 800,
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: 'var(--radius-pill)',
+                              background: badgeBg,
+                              color: badgeColor,
+                              border: `1px solid ${badgeBorder}`
+                            }}>
+                              {tech.proofState || (tech.verified ? 'VERIFIED' : 'UNSUPPORTED')}
+                            </span>
+                          </div>
 
-                      </div>
-                    );
-                  })}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--muted)' }}>
+                            <span>{tech.type}</span>
+                            <span style={{ fontFamily: 'var(--font-mono)' }}>{tech.repos > 0 ? `${tech.repos} Repositories` : 'No Public Code'}</span>
+                          </div>
+
+                          {/* Citation Box */}
+                          <div style={{
+                            padding: '0.75rem 0.9rem',
+                            background: 'var(--bg)',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--border-subtle)',
+                            fontSize: '0.82rem',
+                            fontFamily: 'var(--font-mono)',
+                            color: isUnsupported ? 'var(--muted)' : 'var(--text)'
+                          }}>
+                            {isUnsupported ? (
+                              <div style={{ fontStyle: 'italic' }}>
+                                "No evidence found in public repositories."
+                              </div>
+                            ) : (
+                              <>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem', color: 'var(--accent)', fontWeight: 700 }}>
+                                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                    <FileCode2 size={13} />
+                                    {tech.citationFile}
+                                  </span>
+                                  <span>{tech.citationLine}</span>
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+                                  {tech.citationText}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
               {/* ====================================================================
                   TOP PROJECTS & AI CANDIDATE SIGNALS
                  ==================================================================== */}
-              {topProjects.length > 0 && (
-                <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
-                  <div style={{ marginBottom: '1.75rem' }}>
-                    <h3 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
-                      Top Repositories & Candidate Signal Insights
-                    </h3>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
-                      AI-generated summaries detailing architecture depth and candidate engineering signals.
-                    </p>
-                  </div>
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
+                <div style={{ marginBottom: '1.75rem' }}>
+                  <h3 style={{ fontSize: '1.5rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                    Top Repositories & Candidate Signal Insights
+                  </h3>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
+                    AI-generated summaries detailing architecture depth and candidate engineering signals.
+                  </p>
+                </div>
 
+                {topProjects.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {topProjects.map((proj, idx) => (
                       <div key={idx} style={{
@@ -715,8 +734,25 @@ export default function StudentPage({
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div style={{
+                    padding: '2.5rem',
+                    textAlign: 'center',
+                    background: 'var(--surface)',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--muted)'
+                  }}>
+                    <FolderGit2 size={36} style={{ color: 'var(--muted)', marginBottom: '0.75rem' }} />
+                    <h4 style={{ margin: '0 0 0.35rem 0', color: 'var(--text)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.15rem' }}>
+                      No Public Repositories Found
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                      Zero public repositories or commit activity detected for @{report.username} on GitHub.
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* ====================================================================
                   COLLABORATION & CODE QUALITY SIGNALS GRID
@@ -865,29 +901,28 @@ export default function StudentPage({
               {/* ====================================================================
                   HELP THE STUDENT IMPROVE: ACTIONABLE GROWTH ENGINE
                   (Target Role Selector + Skill Gaps + Next Project + Learning Roadmap)
-                 ==================================================================== */}
-              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
+                 ================================================================              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2.5rem' }}>
                 
                 {/* Header & Target Role Selector */}
                 <div style={{ marginBottom: '2rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div>
                       <h3 style={{ fontSize: '1.6rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
                         Actionable Student Growth & Target Role Selector
                       </h3>
-                      <p style={{ fontSize: '0.925rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
+                      <p style={{ fontSize: '0.925rem', color: 'var(--muted)', margin: '0.35rem 0 0 0' }}>
                         Select your target dream role to adapt skill gaps, next project roadmaps, and profile recommendations.
                       </p>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', padding: '0.35rem 0.5rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
-                      <Sliders size={15} style={{ color: 'var(--accent)', marginLeft: '0.5rem' }} />
-                      <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--muted)' }}>TARGET ROLE:</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--surface)', padding: '0.4rem 0.85rem', borderRadius: 'var(--radius-pill)', border: '1px solid var(--border)' }}>
+                      <Sliders size={14} style={{ color: 'var(--accent)' }} />
+                      <span style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--muted)', letterSpacing: '0.04em' }}>TARGET ROLE SELECTOR</span>
                     </div>
                   </div>
 
-                  {/* Role Selector Pill Buttons */}
-                  <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+                  {/* Role Selector Card Buttons */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                     {roles.map((r) => {
                       const isSelected = r.id === selectedRoleId || r.role === activeRole.role;
                       return (
@@ -896,32 +931,48 @@ export default function StudentPage({
                           type="button"
                           onClick={() => setSelectedRoleId(r.id || 'fullstack')}
                           style={{
-                            padding: '0.6rem 1.25rem',
-                            borderRadius: 'var(--radius-pill)',
+                            padding: '1.1rem 1.25rem',
+                            borderRadius: 'var(--radius-md)',
                             border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
                             background: isSelected ? 'var(--neon-bg)' : 'var(--surface)',
                             color: isSelected ? 'var(--accent)' : 'var(--text)',
-                            fontFamily: 'var(--font-mono)',
-                            fontSize: '0.85rem',
-                            fontWeight: isSelected ? 800 : 500,
+                            textAlign: 'left',
                             cursor: 'pointer',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            transition: 'all 0.2s ease'
+                            flexDirection: 'column',
+                            justify: 'space-between',
+                            gap: '0.85rem',
+                            transition: 'all 0.2s ease',
+                            boxShadow: isSelected ? '0 4px 16px rgba(0,0,0,0.06)' : 'none'
                           }}
                         >
-                          <span>{r.role}</span>
-                          <span style={{
-                            padding: '0.15rem 0.45rem',
-                            borderRadius: 'var(--radius-pill)',
-                            background: isSelected ? 'var(--accent)' : 'var(--bg)',
-                            color: isSelected ? 'var(--bg)' : 'var(--accent)',
-                            fontSize: '0.72rem',
-                            fontWeight: 800
+                          <div style={{
+                            fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
+                            fontSize: '0.95rem',
+                            fontWeight: 700,
+                            lineHeight: 1.4,
+                            color: isSelected ? 'var(--accent)' : 'var(--text)'
                           }}>
-                            {r.match}% MATCH
-                          </span>
+                            {r.role}
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{
+                              fontFamily: 'var(--font-mono)',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              padding: '0.2rem 0.6rem',
+                              borderRadius: 'var(--radius-pill)',
+                              background: isSelected ? 'var(--accent)' : 'var(--bg)',
+                              color: isSelected ? 'var(--bg)' : 'var(--accent)',
+                              border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`
+                            }}>
+                              {r.match}% MATCH
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: isSelected ? 'var(--accent)' : 'var(--muted)', fontWeight: 600 }}>
+                              {r.status || 'Active Path'}
+                            </span>
+                          </div>
                         </button>
                       );
                     })}
@@ -931,43 +982,73 @@ export default function StudentPage({
                 {/* Skill Gap Analysis Box */}
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
                   gap: '1.5rem',
                   marginBottom: '2rem'
                 }}>
                   
                   {/* Verified Skills */}
-                  <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <div style={{ background: 'var(--surface)', padding: '1.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.1rem' }}>
                       <CheckCircle2 size={18} style={{ color: 'var(--proof-verified)' }} />
-                      <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.1rem' }}>
+                      <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.15rem' }}>
                         Proven Skills You Possess ({activeRole.matchingSkills?.length || 0})
                       </h4>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {(activeRole.matchingSkills || []).map((skill, i) => (
-                        <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'var(--proof-verified-bg)', color: 'var(--proof-verified)', border: '1px solid var(--proof-verified)', padding: '0.3rem 0.7rem', borderRadius: 'var(--radius-pill)', fontWeight: 600 }}>
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+                    {activeRole.matchingSkills?.length > 0 ? (
+                      <div style={{ display: 'flex', gap: '0.55rem', flexWrap: 'wrap' }}>
+                        {activeRole.matchingSkills.map((skill, i) => (
+                          <span key={i} style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.8rem',
+                            background: 'var(--proof-verified-bg)',
+                            color: 'var(--proof-verified)',
+                            border: '1px solid var(--proof-verified)',
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: 'var(--radius-pill)',
+                            fontWeight: 700
+                          }}>
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', fontStyle: 'italic' }}>
+                        No verified repository code skills matched for this target role.
+                      </p>
+                    )}
                   </div>
 
                   {/* Skill Gap List */}
-                  <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <div style={{ background: 'var(--surface)', padding: '1.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.1rem' }}>
                       <AlertTriangle size={18} style={{ color: '#f87171' }} />
-                      <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.1rem' }}>
+                      <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.15rem' }}>
                         Skill Gap to Bridge ({activeRole.missingSkills?.length || 0})
                       </h4>
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {(activeRole.missingSkills || []).map((skill, i) => (
-                        <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'rgba(239, 68, 68, 0.1)', color: '#f87171', border: '1px solid #f87171', padding: '0.3rem 0.7rem', borderRadius: 'var(--radius-pill)', fontWeight: 600 }}>
-                          + Missing: {skill}
-                        </span>
-                      ))}
-                    </div>
+                    {activeRole.missingSkills?.length > 0 ? (
+                      <div style={{ display: 'flex', gap: '0.55rem', flexWrap: 'wrap' }}>
+                        {activeRole.missingSkills.map((skill, i) => (
+                          <span key={i} style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.8rem',
+                            background: 'rgba(239, 68, 68, 0.08)',
+                            color: '#f87171',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: 'var(--radius-pill)',
+                            fontWeight: 700
+                          }}>
+                            Missing: {skill}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--proof-verified)', fontWeight: 600 }}>
+                        All core technical requirements for this role are verified in public code!
+                      </p>
+                    )}
                   </div>
 
                 </div>
@@ -982,7 +1063,7 @@ export default function StudentPage({
                     marginBottom: '2rem'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                      <Zap size={22} style={{ color: 'var(--accent)' }} />
+                      <Layers size={22} style={{ color: 'var(--accent)' }} />
                       <h4 style={{ fontSize: '1.35rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
                         Recommended Next Project: {activeRole.nextProject.title}
                       </h4>
@@ -1007,11 +1088,12 @@ export default function StudentPage({
                             fontFamily: 'var(--font-mono)',
                             fontSize: '0.75rem',
                             fontWeight: 800,
-                            background: 'var(--neon-bg)',
+                            background: 'var(--surface)',
                             color: 'var(--accent)',
+                            border: '1px solid var(--accent)',
                             width: '24px',
                             height: '24px',
-                            borderRadius: '50%',
+                            borderRadius: '4px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1029,14 +1111,14 @@ export default function StudentPage({
                 )}
 
                 {/* Learning Roadmap & Profile Improvement Tips */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
                   
                   {/* Learning Roadmap */}
                   {activeRole.learningRoadmap && (
-                    <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                    <div style={{ background: 'var(--surface)', padding: '1.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
                         <BookOpen size={18} style={{ color: 'var(--accent)' }} />
-                        <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.1rem' }}>
+                        <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.15rem' }}>
                           Curated Learning Roadmap
                         </h4>
                       </div>
@@ -1051,20 +1133,23 @@ export default function StudentPage({
                             style={{
                               display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'space-between',
-                              padding: '0.75rem 1rem',
+                              justify: 'space-between',
+                              padding: '0.85rem 1.1rem',
                               background: 'var(--bg)',
                               borderRadius: 'var(--radius-sm)',
                               border: '1px solid var(--border-subtle)',
                               color: 'var(--text)',
                               textDecoration: 'none',
-                              fontSize: '0.85rem',
+                              fontSize: '0.875rem',
                               fontFamily: 'var(--font-mono)',
                               transition: 'all 0.2s ease'
                             }}
                           >
-                            <span>📚 {item.linkName}</span>
-                            <ExternalLink size={14} style={{ color: 'var(--accent)' }} />
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontWeight: 600 }}>
+                              <FileText size={14} style={{ color: 'var(--accent)' }} />
+                              {item.linkName}
+                            </span>
+                            <ExternalLink size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
                           </a>
                         ))}
                       </div>
@@ -1072,43 +1157,80 @@ export default function StudentPage({
                   )}
 
                   {/* Profile Improvement Tips */}
-                  <div style={{ background: 'var(--surface)', padding: '1.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <div style={{ background: 'var(--surface)', padding: '1.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
                       <ListChecks size={18} style={{ color: 'var(--accent)' }} />
-                      <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.1rem' }}>
+                      <h4 style={{ margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", fontSize: '1.15rem' }}>
                         GitHub Profile Optimization Tips
                       </h4>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {(report.improvements || []).map((tip, idx) => (
-                        <div key={idx} style={{
-                          padding: '0.85rem 1rem',
-                          background: 'var(--bg)',
-                          borderRadius: 'var(--radius-sm)',
-                          border: '1px solid var(--border-subtle)',
-                          fontSize: '0.85rem'
-                        }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: '0.2rem' }}>
-                            💡 {tip.title}
+                      {(activeRole.improvements || report.improvements || []).map((tip, idx) => {
+                        const isHigh = tip.priority === 'High';
+                        return (
+                          <div key={idx} style={{
+                            padding: '0.9rem 1.1rem',
+                            background: 'var(--bg)',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--border-subtle)',
+                            fontSize: '0.85rem'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                              <span style={{
+                                fontSize: '0.65rem',
+                                fontFamily: 'var(--font-mono)',
+                                fontWeight: 800,
+                                padding: '0.15rem 0.45rem',
+                                borderRadius: 'var(--radius-pill)',
+                                background: isHigh ? 'rgba(239, 68, 68, 0.12)' : 'var(--neon-bg)',
+                                color: isHigh ? '#f87171' : 'var(--accent)',
+                                border: `1px solid ${isHigh ? 'rgba(239, 68, 68, 0.3)' : 'var(--accent)'}`
+                              }}>
+                                {tip.priority ? `${tip.priority.toUpperCase()} PRIORITY` : 'RECOMMENDED'}
+                              </span>
+                              <div style={{ fontWeight: 700, color: 'var(--text)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
+                                {tip.title}
+                              </div>
+                            </div>
+                            <div style={{ fontSize: '0.82rem', color: 'var(--muted)', lineHeight: 1.45 }}>
+                              {tip.detail}
+                            </div>
                           </div>
-                          <div style={{ fontSize: '0.8rem', color: 'var(--muted)', lineHeight: 1.4 }}>
-                            {tip.detail}
-                          </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
-                </div>
-
               </div>
-
             </div>
-
           </div>
         </section>
       )}
+
+      {/* 3. STUDENT PAGE FOOTER */}
+      <footer style={{
+        background: 'var(--bg)',
+        borderTop: '1px solid var(--border)',
+        padding: '1.75rem 1rem',
+        marginTop: 'auto',
+        textAlign: 'center'
+      }}>
+        <div className="container" style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.5rem',
+          fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
+          fontSize: '0.95rem',
+          fontWeight: 700,
+          color: 'var(--text)',
+          whiteSpace: 'nowrap'
+        }}>
+          <Terminal size={16} style={{ color: 'var(--accent)' }} />
+          <span>Designed and Developed by <span style={{ color: 'var(--accent)' }}>Team Kanyarasi</span></span>
+        </div>
+      </footer>
 
     </main>
   );

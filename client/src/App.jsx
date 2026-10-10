@@ -302,25 +302,27 @@ export default function App() {
         username: clean,
         name: handleDisplay,
         avatar: userAvatar,
-        bio: isOwner ? 'Full-Stack MERN & Distributed Systems Developer • Creator of CommitCV' : `Software Developer (@${clean})`,
-        confidenceBadge: 'High Data Confidence',
+        bio: isOwner ? 'Full-Stack MERN & Distributed Systems Developer • Creator of CommitCV' : `GitHub User (@${clean}) • No Public Repositories Found`,
+        confidenceBadge: isOwner ? 'High Data Confidence' : 'No Data Confidence',
         activity: {
-          score: isOwner ? 94 : 88,
-          label: 'Very Active Contributor',
-          commitsLastYear: isOwner ? 482 : 380,
-          publicRepos: isOwner ? 14 : 10,
-          streakDays: streakDays,
-          longestStreak: longestStreak,
-          mostActiveDays: mostActiveDays,
-          weeklyCadence: `${((isOwner ? 482 : 380) / 52).toFixed(1)} commits / week`,
-          summary: `Demonstrated high engineering cadence and consistent repository maintenance detected for @${clean}.`
+          score: isOwner ? 94 : 0,
+          label: isOwner ? 'Very Active Contributor' : 'No Public Activity Detected',
+          commitsLastYear: isOwner ? 482 : 0,
+          publicRepos: isOwner ? 14 : 0,
+          streakDays: isOwner ? streakDays : 0,
+          longestStreak: isOwner ? longestStreak : 0,
+          mostActiveDays: isOwner ? mostActiveDays : ['None', 'None'],
+          weeklyCadence: isOwner ? `${(482 / 52).toFixed(1)} commits / week` : '0.0 commits / week',
+          summary: isOwner 
+            ? `Demonstrated high engineering cadence and consistent repository maintenance detected for @${clean}.`
+            : `Zero public repositories or commit history found for @${clean} on GitHub.`
         },
         scoreBreakdown: {
-          codeQuality: 92,
-          projectDepth: 94,
-          consistency: 96,
-          collaboration: 88,
-          documentation: 90
+          codeQuality: isOwner ? 92 : 0,
+          projectDepth: isOwner ? 94 : 0,
+          consistency: isOwner ? 96 : 0,
+          collaboration: isOwner ? 88 : 0,
+          documentation: isOwner ? 90 : 0
         },
         topProjects: isOwner ? [
           {
@@ -357,26 +359,8 @@ export default function App() {
               proofState: 'VERIFIED'
             }
           }
-        ] : [
-          {
-            name: `${clean}-core-platform`,
-            stars: 10,
-            forks: 2,
-            language: 'TypeScript',
-            description: `Full-stack platform application built by @${clean}.`,
-            aiSummary: 'Modular application utilizing asynchronous handlers and REST architecture.',
-            showsAboutStudent: 'Demonstrates clean repository organization and modular code separation.',
-            codeCitation: `${clean}-core-platform/src/index.ts:L15-L42`,
-            hasReadme: true,
-            readmeEvidence: {
-              file: `${clean}-core-platform/README.md:L1-L30`,
-              status: 'VERIFIED IN README',
-              snippet: `Documentation verified for @${clean}'s core repository setup and API definitions.`,
-              proofState: 'VERIFIED'
-            }
-          }
-        ],
-        techStacks: [
+        ] : [],
+        techStacks: isOwner ? [
           {
             name: 'JavaScript / TypeScript',
             level: 'Advanced',
@@ -409,61 +393,27 @@ export default function App() {
             citationLine: 'L1-L45',
             citationCommit: 'Commit #8c201da',
             citationText: 'Express REST routing handlers and CORS middleware verified.'
-          },
-          {
-            name: 'Go (Golang)',
-            level: 'Working Knowledge',
-            type: 'Core Language',
-            repos: 2,
-            proofState: 'VERIFIED',
-            citationFile: 'go.mod',
-            citationLine: 'L1-L12',
-            citationCommit: 'Commit #9d110ab',
-            citationText: 'Go module declaration and goroutine channel orchestration verified.'
-          },
-          {
-            name: 'PostgreSQL / SQL',
-            level: 'Intermediate',
-            type: 'Database',
-            repos: 2,
-            proofState: 'PARTIAL',
-            citationFile: 'README.md',
-            citationLine: 'L42',
-            citationCommit: 'Commit #2e441bb',
-            citationText: 'Mentioned in schema setup documentation; no migration SQL files found.'
-          },
-          {
-            name: 'GraphQL APIs',
-            level: 'Unverified',
-            type: 'API Architecture',
-            repos: 0,
-            proofState: 'UNSUPPORTED',
-            citationFile: 'N/A',
-            citationLine: 'N/A',
-            citationCommit: 'N/A',
-            citationText: 'No evidence found in public repositories.'
           }
-        ],
+        ] : [],
         collaborationSignals: {
-          prsMerged: isOwner ? 4 : 2,
-          codeReviews: isOwner ? 2 : 1,
-          issuesClosed: isOwner ? 5 : 2,
+          prsMerged: isOwner ? 4 : 0,
+          codeReviews: isOwner ? 2 : 0,
+          issuesClosed: isOwner ? 5 : 0,
           openSourceContribs: isOwner ? 1 : 0
         },
         codeQualitySignals: {
-          testsDetected: true,
-          testFramework: 'Vitest & Jest Unit Testing',
-          ciSetup: true,
-          ciProvider: 'GitHub Actions CI/CD',
-          readmeQualityScore: 92,
-          structureRating: 'Decoupled MERN Architecture'
+          testsDetected: isOwner,
+          testFramework: isOwner ? 'Vitest & Jest Unit Testing' : 'No Public Unit Tests Detected',
+          ciSetup: isOwner,
+          ciProvider: isOwner ? 'GitHub Actions CI/CD' : 'No Automated CI Configured',
+          readmeQualityScore: isOwner ? 92 : 0,
+          structureRating: isOwner ? 'Decoupled MERN Architecture' : 'No Repositories Found'
         },
-        citations: [
+        citations: isOwner ? [
           { claim: 'Verified React 19 & Next.js App Router', repo: 'commit-cv-web', file: 'package.json:L24', commit: '#3b91a0f', detail: '"react": "^19.0.0" manifest dependency verified.' },
-          { claim: 'Verified Express REST Routing Handlers', repo: 'commit-cv-server', file: 'server/server.js:L1-L45', commit: '#8c201da', detail: 'Express routing and middleware configuration verified.' },
-          { claim: 'Verified Golang Concurrency Channel Usage', repo: 'distributed-queue-go', file: 'main.go:L35-L92', commit: '#9d110ab', detail: 'Go channels and mutex lock synchronization verified.' }
-        ],
-        improvements: [
+          { claim: 'Verified Express REST Routing Handlers', repo: 'commit-cv-server', file: 'server/server.js:L1-L45', commit: '#8c201da', detail: 'Express routing and middleware configuration verified.' }
+        ] : [],
+        improvements: isOwner ? [
           {
             title: 'Add Automated Unit Test Suites',
             priority: 'High',
@@ -473,14 +423,20 @@ export default function App() {
             title: 'Pin Top 3 Proof-Backed Repositories',
             priority: 'High',
             detail: 'Organize your public GitHub overview so recruiters instantly land on your highest AST quality codebases.'
+          }
+        ] : [
+          {
+            title: 'Publish Source Code Repositories',
+            priority: 'High',
+            detail: 'Create public GitHub repositories containing code files and build manifests.'
           },
           {
-            title: 'Publish Architecture Flowcharts in READMEs',
-            priority: 'Medium',
-            detail: 'Include Mermaid.js sequence and component diagrams to show technical leadership and clear system design thinking.'
+            title: 'Push Verified Commit Activity',
+            priority: 'High',
+            detail: 'Regular commit history is required to measure velocity, streak days, and AST syntax grounding.'
           }
         ],
-        recommendedRoles: [
+        recommendedRoles: isOwner ? [
           {
             id: 'fullstack',
             role: 'Full-Stack Software Engineer (React / Node / MERN)',
@@ -500,48 +456,55 @@ export default function App() {
             learningRoadmap: [
               { skill: 'GraphQL APIs', linkName: 'Apollo Server & React GraphQL Tutorial', url: 'https://graphql.org/learn/' },
               { skill: 'Redis Caching', linkName: 'Redis Crash Course for Node.js', url: 'https://redis.io/docs/' }
+            ],
+            improvements: [
+              {
+                title: 'Add Automated MERN Unit Test Suites',
+                priority: 'High',
+                detail: 'Adding Vitest or Jest test suites with >75% line coverage automatically promotes MERN skill badges from PARTIAL to VERIFIED.'
+              },
+              {
+                title: 'Pin Top 3 Full-Stack Repositories',
+                priority: 'High',
+                detail: 'Organize your public GitHub overview so recruiters instantly land on your highest AST quality MERN codebases.'
+              },
+              {
+                title: 'Publish Architecture Flowcharts in READMEs',
+                priority: 'Medium',
+                detail: 'Include Mermaid.js sequence and component diagrams to show full-stack technical leadership and clear API design.'
+              }
             ]
-          },
+          }
+        ] : [
           {
-            id: 'backend',
-            role: 'Backend & Distributed Systems Engineer (Go / Docker)',
-            match: 86,
-            status: 'Strong Match',
-            matchingSkills: ['Go (Golang)', 'Node.js & Express', 'REST APIs', 'Docker & Containers'],
-            missingSkills: ['Kubernetes Orchestration', 'gRPC Protocol Buffers'],
+            id: 'fullstack',
+            role: 'Full-Stack Software Engineer (React / Node / MERN)',
+            match: 0,
+            status: 'No Data / 0% Match',
+            matchingSkills: [],
+            missingSkills: ['Public Code Repositories', 'Commit History', 'Package Manifests'],
             nextProject: {
-              title: 'High-Throughput Distributed Rate Limiter in Go',
+              title: 'Publish First Public GitHub Repository',
               plan: [
-                'Implement Token Bucket and Sliding Window rate limiting algorithms in Golang.',
-                'Use Redis cluster for distributed state lock across microservices.',
-                'Write benchmark tests with `go test -bench` to prove sub-millisecond latency.',
-                'Package container with Docker multi-stage build and GitHub Actions CI.'
+                'Initialize a public GitHub repository with a README.md and package.json.',
+                'Commit source code and push to GitHub main branch.',
+                'Re-analyze profile on CommitCV to verify AST syntax and skill badges.'
               ]
             },
             learningRoadmap: [
-              { skill: 'Kubernetes Orchestration', linkName: 'Kubernetes Basics & Deployment Spec', url: 'https://kubernetes.io/docs/tutorials/' },
-              { skill: 'gRPC Protocol Buffers', linkName: 'gRPC Go Quick Start Guide', url: 'https://grpc.io/docs/languages/go/quickstart/' }
-            ]
-          },
-          {
-            id: 'frontend',
-            role: 'Frontend Performance Specialist (React 19 / TypeScript)',
-            match: 94,
-            status: 'Exceptional Match',
-            matchingSkills: ['JavaScript / TypeScript', 'React 19 / Next.js', 'State Management', 'Responsive Styling'],
-            missingSkills: ['Playwright E2E Testing', 'Web Vitals Optimization'],
-            nextProject: {
-              title: 'Next.js 15 E-Commerce Dashboard with Playwright E2E Tests',
-              plan: [
-                'Build App Router SSR architecture with React Server Components.',
-                'Setup Playwright automated cross-browser test runner in CI pipeline.',
-                'Optimize Core Web Vitals to achieve 98+ Lighthouse Performance Score.',
-                'Publish repository with documented architecture diagrams.'
-              ]
-            },
-            learningRoadmap: [
-              { skill: 'Playwright E2E Testing', linkName: 'Playwright Testing Guide & Assertions', url: 'https://playwright.dev/docs/intro' },
-              { skill: 'Web Vitals Optimization', linkName: 'web.dev Core Web Vitals Guide', url: 'https://web.dev/vitals/' }
+              { skill: 'Git & GitHub Setup', linkName: 'GitHub Quickstart Guide', url: 'https://docs.github.com/en/get-started' }
+            ],
+            improvements: [
+              {
+                title: 'Publish Source Code Repositories',
+                priority: 'High',
+                detail: 'Create public GitHub repositories containing code files (e.g. index.js, main.go) and build manifests.'
+              },
+              {
+                title: 'Push Verified Commit Activity',
+                priority: 'High',
+                detail: 'Regular commit history is required to measure velocity, streak days, and AST syntax grounding.'
+              }
             ]
           }
         ]

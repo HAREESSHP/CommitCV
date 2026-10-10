@@ -53,19 +53,16 @@ app.post('/api/analyze', async (req, res) => {
       githubData = {
         user: { 
           login: username, 
-          name: isOwner ? 'Hareesh P' : username.toUpperCase(), 
-          public_repos: isOwner ? 12 : 6, 
+          name: isOwner ? 'Hareesh P' : username, 
+          public_repos: isOwner ? 12 : 0, 
           avatar_url: `https://github.com/${username}.png`
         },
         repos: isOwner ? [
           { name: 'CommitCV', language: 'JavaScript', description: 'Full-stack AST citation resume verification platform with MERN stack & zero hallucinations', stargazers_count: 24, forks_count: 6, topics: ['react', 'express', 'rag', 'mongodb'] },
           { name: 'portfolio-website', language: 'JavaScript', description: 'Modern interactive engineering portfolio and student code dossier', stargazers_count: 12, forks_count: 3, topics: ['react', 'vite', 'css-variables'] },
           { name: 'mern-microservices', language: 'TypeScript', description: 'Decoupled REST microservices architecture with Express, Docker, and MongoDB', stargazers_count: 9, forks_count: 2, topics: ['typescript', 'express', 'docker'] }
-        ] : [
-          { name: `${username}-core-platform`, language: 'JavaScript', description: 'Full-stack platform application with REST APIs', stargazers_count: 10, forks_count: 2, topics: ['react', 'express'] },
-          { name: `${username}-api-services`, language: 'TypeScript', description: 'REST API service with automated Vitest test runner', stargazers_count: 6, forks_count: 1, topics: ['nodejs', 'typescript'] }
-        ],
-        events: [{ type: 'PushEvent', payload: { commits: [1, 2, 3] } }],
+        ] : [],
+        events: isOwner ? [{ type: 'PushEvent', payload: { commits: [1, 2, 3] } }] : [],
         readmes: isOwner ? {
           'CommitCV': 'CommitCV Engine: Grounding tech resumes in verifiable AST code citations and zero hallucinations. Built with React 19, Vite, Express.js, and MongoDB.'
         } : {}
