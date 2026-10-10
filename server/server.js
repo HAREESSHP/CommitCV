@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB, inMemoryDB, StudentProfile, HRToken } from './db.js';
+import { connectDB, inMemoryDB, StudentProfile, RecruiterAccount } from './db.js';
 import { fetchGitHubUserData } from './github.js';
 import { analyzeCandidate, matchCandidateWithJD } from './rag.js';
 
@@ -29,7 +29,6 @@ app.post('/api/analyze', async (req, res) => {
       return res.status(400).json({ error: 'Username or GitHub URL is required' });
     }
 
-    // Clean URL if passed
     if (username.includes('github.com/')) {
       const parts = username.split('github.com/');
       username = parts[1].replace(/\/$/, '').split('/')[0];
@@ -55,7 +54,6 @@ app.post('/api/analyze', async (req, res) => {
 
     const report = analyzeCandidate(githubData);
 
-    // Save in DB or in-memory
     try {
       if (StudentProfile.create) {
         await StudentProfile.findOneAndUpdate({ username }, report, { upsert: true, new: true });
@@ -114,7 +112,7 @@ app.get('/api/candidates', async (req, res) => {
   }
 });
 
-// 3. Recruiter JD Matching Endpoint (New feature requested)
+// 3. Recruiter JD Matching Endpoint
 app.post('/api/recruiter/match-jd', async (req, res) => {
   try {
     let { jobDescription, candidateUsername } = req.body;
@@ -122,14 +120,12 @@ app.post('/api/recruiter/match-jd', async (req, res) => {
       return res.status(400).json({ error: 'Job description and candidate handle are required' });
     }
 
-    // Clean username
     if (candidateUsername.includes('github.com/')) {
       const parts = candidateUsername.split('github.com/');
       candidateUsername = parts[1].replace(/\/$/, '').split('/')[0];
     }
     candidateUsername = candidateUsername.trim().toLowerCase();
 
-    // Fetch or analyze candidate
     let candidateReport = inMemoryDB.profiles.get(candidateUsername);
     if (!candidateReport) {
       let githubData;
@@ -157,20 +153,22 @@ app.post('/api/recruiter/match-jd', async (req, res) => {
   }
 });
 
-// 4. Admin: Generate HR Registration ID
-app.post('/api/admin/generate-hr-token', async (req, res) => {
+// 4. Admin: Generate Recruiter Account (ID and Password)
+app.post('/api/admin/create-recruiter', async (req, res) => {
   try {
-    const { hrName, org } = req.body;
+    const { hrName, org, password, customId } = req.body;
     if (!hrName || !org) {
-      return res.status(400).json({ error: 'HR Name and Organization are required' });
+      return res.status(400).json({ error: 'Recruiter Name and Organization are required' });
     }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const cleanOrg = org.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const tokenId = `HR-${randomNum}-${cleanOrg}`;
+    const recruiterId = customId ? customId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`;
+    const recruiterPassword = password ? password.trim() : `${cleanOrg.toLowerCase()}@pass${randomNum}`;
 
-    const tokenEntry = {
-      id: tokenId,
+    const account = {
+      recruiterId,
+      password: recruiterPassword,
       hrName: hrName.trim(),
       org: org.trim(),
       date: new Date().toISOString().split('T')[0],
@@ -178,59 +176,76 @@ app.post('/api/admin/generate-hr-token', async (req, res) => {
     };
 
     try {
-      if (HRToken.create) {
-        await HRToken.create(tokenEntry);
+      if (RecruiterAccount.create) {
+        await RecruiterAccount.create(account);
       }
     } catch {
-      inMemoryDB.hrTokens.unshift(tokenEntry);
+      inMemoryDB.recruiters.unshift(account);
     }
 
-    res.json({ success: true, token: tokenEntry });
+    res.json({ success: true, recruiter: account });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to generate HR registration ID' });
+    res.status(500).json({ error: 'Failed to create recruiter account' });
   }
 });
 
-// 5. Admin: List All Issued HR Tokens
-app.get('/api/admin/hr-tokens', async (req, res) => {
+// 5. Admin: List All Issued Recruiter Accounts (ID & Password)
+app.get('/api/admin/recruiters', async (req, res) => {
   try {
-    let tokens = [];
+    let accounts = [];
     try {
-      tokens = await HRToken.find().sort({ _id: -1 });
+      accounts = await RecruiterAccount.find().sort({ _id: -1 });
     } catch {
-      tokens = inMemoryDB.hrTokens;
+      accounts = inMemoryDB.recruiters;
     }
-    if (!tokens || tokens.length === 0) {
-      tokens = inMemoryDB.hrTokens;
+    if (!accounts || accounts.length === 0) {
+      accounts = inMemoryDB.recruiters;
     }
-    res.json({ success: true, tokens });
+    res.json({ success: true, recruiters: accounts });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch HR tokens' });
+    res.status(500).json({ error: 'Failed to fetch recruiter accounts' });
   }
 });
 
-// 6. HR / Hiring Manager: Verify Registration Token
-app.post('/api/hr/verify-token', async (req, res) => {
+// 6. Recruiter Login (Authenticates with Recruiter ID & Password)
+app.post('/api/recruiter/login', async (req, res) => {
   try {
-    const { token } = req.body;
-    if (!token) return res.status(400).json({ error: 'Token is required' });
-
-    let match = null;
-    try {
-      match = await HRToken.findOne({ id: token.trim().toUpperCase() });
-    } catch {
-      match = inMemoryDB.hrTokens.find(t => t.id === token.trim().toUpperCase());
+    const { recruiterId, password } = req.body;
+    if (!recruiterId || !password) {
+      return res.status(400).json({ success: false, error: 'Recruiter ID and Password are required' });
     }
 
-    if (match) {
-      res.json({ verified: true, hrName: match.hrName, org: match.org });
-    } else if (token.toUpperCase().startsWith('HR-')) {
-      res.json({ verified: true, hrName: 'Authorized Recruiter', org: 'Enterprise Partner' });
+    const cleanId = recruiterId.trim().toUpperCase();
+    const cleanPass = password.trim();
+
+    let account = null;
+    try {
+      account = await RecruiterAccount.findOne({ recruiterId: cleanId });
+    } catch {
+      account = inMemoryDB.recruiters.find(r => r.recruiterId === cleanId);
+    }
+
+    if (!account) {
+      account = inMemoryDB.recruiters.find(r => r.recruiterId === cleanId);
+    }
+
+    if (account && account.password === cleanPass) {
+      res.json({
+        success: true,
+        recruiter: {
+          recruiterId: account.recruiterId,
+          hrName: account.hrName,
+          org: account.org
+        }
+      });
     } else {
-      res.status(401).json({ verified: false, error: 'Invalid or expired HR Registration ID' });
+      res.status(401).json({
+        success: false,
+        error: 'Invalid Recruiter ID or Password. Credentials can be generated in Admin Access.'
+      });
     }
   } catch (err) {
-    res.status(500).json({ error: 'Verification failed' });
+    res.status(500).json({ success: false, error: 'Login authentication failed' });
   }
 });
 
