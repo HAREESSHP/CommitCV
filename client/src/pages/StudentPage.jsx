@@ -44,7 +44,7 @@ export default function StudentPage({
   const [expandedReadmes, setExpandedReadmes] = useState({});
 
   const copyShareLink = () => {
-    const handle = studentReport ? studentReport.username : 'alex-chen';
+    const handle = studentReport ? studentReport.username : 'HAREESSHP';
     navigator.clipboard.writeText(`https://commitcv.com/student/${handle}`);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);

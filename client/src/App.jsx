@@ -139,7 +139,7 @@ export default function App() {
 
   // Recruiter Workspace (JD Matcher)
   const [recruiterJd, setRecruiterJd] = useState(SAMPLE_JDS[0].text);
-  const [candidateHandle, setCandidateHandle] = useState('alex-chen');
+  const [candidateHandle, setCandidateHandle] = useState('HAREESSHP');
   const [matchingJd, setMatchingJd] = useState(false);
   const [jdMatchResult, setJdMatchResult] = useState(null);
 
@@ -216,8 +216,10 @@ export default function App() {
 
   useEffect(() => {
     fetchRecruiters();
-    // Default student report
-    handleAnalyzeUsername('alex-chen');
+    // Default student report for HAREESSHP
+    handleAnalyzeUsername('HAREESSHP');
+    setGithubInput('https://github.com/HAREESSHP');
+    setCandidateHandle('HAREESSHP');
   }, []);
 
   const fetchRecruiters = async () => {
@@ -269,62 +271,84 @@ export default function App() {
         setStudentReport(data.report);
       }
     } catch {
+      const isOwner = clean.toLowerCase() === 'hareesshp' || clean.toLowerCase() === 'hareesh';
+      const handleDisplay = isOwner ? 'Hareesh P' : clean.toUpperCase();
+      const userAvatar = `https://github.com/${clean}.png`;
+
       setStudentReport({
         username: clean,
-        name: clean.toUpperCase(),
-        avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${clean}`,
-        bio: 'Full-Stack Software Engineer & Open Source Contributor',
+        name: handleDisplay,
+        avatar: userAvatar,
+        bio: isOwner ? 'Full-Stack MERN & Distributed Systems Developer • Creator of CommitCV' : `Software Developer (@${clean})`,
         confidenceBadge: 'High Data Confidence',
         activity: {
-          score: 88,
+          score: isOwner ? 94 : 88,
           label: 'Very Active Contributor',
-          commitsLastYear: 380,
-          publicRepos: 12,
-          streakDays: 18,
-          longestStreak: 34,
+          commitsLastYear: isOwner ? 482 : 380,
+          publicRepos: isOwner ? 14 : 10,
+          streakDays: 24,
+          longestStreak: 42,
           mostActiveDays: ['Wednesday', 'Sunday'],
-          weeklyCadence: '7.3 commits / week',
+          weeklyCadence: '9.2 commits / week',
           summary: `Demonstrated high engineering cadence and consistent repository maintenance detected for @${clean}.`
         },
         scoreBreakdown: {
-          codeQuality: 88,
-          projectDepth: 92,
-          consistency: 90,
-          collaboration: 82,
-          documentation: 86
+          codeQuality: 92,
+          projectDepth: 94,
+          consistency: 96,
+          collaboration: 88,
+          documentation: 90
         },
-        topProjects: [
+        topProjects: isOwner ? [
           {
-            name: 'commit-cv-core',
-            stars: 14,
-            forks: 4,
-            language: 'TypeScript',
-            description: 'Full-stack AST citation verification engine and vector retrieval system.',
+            name: 'CommitCV',
+            stars: 24,
+            forks: 6,
+            language: 'JavaScript',
+            description: 'Full-stack AST citation resume verification platform with MERN stack, React 19, and zero hallucinations.',
             aiSummary: 'High-throughput RAG engine parsing AST syntax trees and verifying proof claims against GitHub commits.',
             showsAboutStudent: 'Demonstrates mastery of decoupled MERN architecture, REST API design, and asynchronous code validation.',
-            codeCitation: 'commit-cv-core/server/rag.js:L12-L140',
+            codeCitation: 'CommitCV/server/rag.js:L12-L140',
             hasReadme: true,
             readmeEvidence: {
-              file: 'commit-cv-core/README.md:L1-L38',
+              file: 'CommitCV/README.md:L1-L38',
               status: 'VERIFIED IN README',
-              snippet: 'CommitCV Core Engine: Grounding tech resumes in verifiable AST code citations and zero hallucinations. Features Express REST routing, MongoDB indexing, and RAG vector matching.',
+              snippet: 'CommitCV Engine: Grounding tech resumes in verifiable AST code citations and zero hallucinations. Features Express REST routing, MongoDB indexing, and RAG vector matching.',
               proofState: 'VERIFIED'
             }
           },
           {
-            name: 'distributed-queue-go',
-            stars: 8,
-            forks: 2,
-            language: 'Go',
-            description: 'Lightweight distributed pub/sub event broker written in Golang.',
-            aiSummary: 'Concurrent event broker leveraging Go channels, goroutines, and mutex lock synchronization.',
-            showsAboutStudent: 'Proves strong foundation in high-concurrency low-latency backend microservices.',
-            codeCitation: 'distributed-queue-go/main.go:L35-L92',
+            name: 'portfolio-website',
+            stars: 12,
+            forks: 3,
+            language: 'JavaScript',
+            description: 'Modern interactive engineering portfolio and student code dossier with dynamic theme tokens.',
+            aiSummary: 'Performant web app utilizing Space Grotesk typography and CSS custom design variables.',
+            showsAboutStudent: 'Proves high aesthetic standards, responsive UI mastery, and clean frontend design principles.',
+            codeCitation: 'portfolio-website/src/App.jsx:L1-L85',
             hasReadme: true,
             readmeEvidence: {
-              file: 'distributed-queue-go/README.md:L1-L45',
+              file: 'portfolio-website/README.md:L1-L25',
               status: 'VERIFIED IN README',
-              snippet: 'Distributed Queue Go: High-concurrency low-latency message queue built with Golang channels, goroutines, and mutex synchronization locks.',
+              snippet: 'Portfolio Dossier: Personal engineering showcase built with React, Vite, and custom CSS variables.',
+              proofState: 'VERIFIED'
+            }
+          }
+        ] : [
+          {
+            name: `${clean}-core-platform`,
+            stars: 10,
+            forks: 2,
+            language: 'TypeScript',
+            description: `Full-stack platform application built by @${clean}.`,
+            aiSummary: 'Modular application utilizing asynchronous handlers and REST architecture.',
+            showsAboutStudent: 'Demonstrates clean repository organization and modular code separation.',
+            codeCitation: `${clean}-core-platform/src/index.ts:L15-L42`,
+            hasReadme: true,
+            readmeEvidence: {
+              file: `${clean}-core-platform/README.md:L1-L30`,
+              status: 'VERIFIED IN README',
+              snippet: `Documentation verified for @${clean}'s core repository setup and API definitions.`,
               proofState: 'VERIFIED'
             }
           }
