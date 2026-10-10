@@ -33,9 +33,14 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+<<<<<<< HEAD
   Shield,
   KeyRound,
   User
+=======
+  Eye,
+  EyeOff
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
 } from 'lucide-react';
 
 const API_BASE = 'http://localhost:5000/api';
@@ -109,7 +114,7 @@ Requirements:
 ];
 
 export default function App() {
-  // Navigation: 'home' | 'student' | 'recruiter-login' | 'recruiter-workspace' | 'admin'
+  // Navigation: 'home' | 'student' | 'recruiter-login' | 'recruiter-dashboard' | 'admin'
   const [currentPage, setCurrentPage] = useState('home');
 
   // Student Section State
@@ -118,11 +123,19 @@ export default function App() {
   const [studentReport, setStudentReport] = useState(null);
 
   // Recruiter Authentication State
+<<<<<<< HEAD
   const [recruiterAuth, setRecruiterAuth] = useState(null); // { hrName, org, token }
   const [hrTokenInput, setHrTokenInput] = useState('');
   const [hrPasswordInput, setHrPasswordInput] = useState('');
   const [hrEmailInput, setHrEmailInput] = useState('');
+=======
+  const [recruiterAuth, setRecruiterAuth] = useState(null); // { recruiterId, hrName, org }
+  const [recruiterIdInput, setRecruiterIdInput] = useState('');
+  const [recruiterPasswordInput, setRecruiterPasswordInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   const [loginError, setLoginError] = useState('');
+  const [recruitersList, setRecruitersList] = useState([]);
 
   // Recruiter Workspace (JD Matcher)
   const [recruiterJd, setRecruiterJd] = useState(SAMPLE_JDS[0].text);
@@ -130,6 +143,7 @@ export default function App() {
   const [matchingJd, setMatchingJd] = useState(false);
   const [jdMatchResult, setJdMatchResult] = useState(null);
 
+<<<<<<< HEAD
   // Admin Section State (Production Gateway & Session)
   const [adminAuth, setAdminAuth] = useState(() => {
     try {
@@ -140,10 +154,15 @@ export default function App() {
     }
   });
   const [adminUsername, setAdminUsername] = useState('admin');
+=======
+  // Admin Section State (Generate Recruiter ID and Password)
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   const [adminPassword, setAdminPassword] = useState('');
   const [adminPin, setAdminPin] = useState('2026');
   const [adminShowPassword, setAdminShowPassword] = useState(false);
   const [adminError, setAdminError] = useState('');
+<<<<<<< HEAD
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminTokenSearch, setAdminTokenSearch] = useState('');
   const [hrTokens, setHrTokens] = useState([]);
@@ -152,6 +171,14 @@ export default function App() {
   const [newEmployeeId, setNewEmployeeId] = useState('');
   const [issuedCredentialCard, setIssuedCredentialCard] = useState(null);
   const [copiedToken, setCopiedToken] = useState(null);
+=======
+  const [newHrName, setNewHrName] = useState('');
+  const [newOrg, setNewOrg] = useState('');
+  const [newCustomId, setNewCustomId] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [copiedId, setCopiedId] = useState(null);
+  const [copiedPass, setCopiedPass] = useState(null);
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
 
   const deriveCredentials = (empId) => {
     let clean = (empId || '').trim();
@@ -190,22 +217,36 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    fetchHrTokens();
+    fetchRecruiters();
     // Default student report
     handleAnalyzeUsername('alex-chen');
   }, []);
 
-  const fetchHrTokens = async () => {
+  const fetchRecruiters = async () => {
     try {
-      const res = await fetch(`${API_BASE}/admin/hr-tokens`);
+      const res = await fetch(`${API_BASE}/admin/recruiters`);
       const data = await res.json();
-      if (data.success && data.tokens) {
-        setHrTokens(data.tokens);
+      if (data.success && data.recruiters) {
+        setRecruitersList(data.recruiters);
       }
     } catch {
-      setHrTokens([
-        { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', date: '2026-10-08', status: 'Active' },
-        { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', date: '2026-10-09', status: 'Active' }
+      setRecruitersList([
+        { 
+          recruiterId: 'REC-8192-STRIPE', 
+          password: 'stripe@password123', 
+          hrName: 'Sarah Jenkins', 
+          org: 'Stripe', 
+          date: '2026-10-08', 
+          status: 'Active' 
+        },
+        { 
+          recruiterId: 'REC-4091-GOOGLE', 
+          password: 'google@cloud2026', 
+          hrName: 'Vikram Mehta', 
+          org: 'Google Cloud', 
+          date: '2026-10-09', 
+          status: 'Active' 
+        }
       ]);
     }
   };
@@ -230,7 +271,6 @@ export default function App() {
         setStudentReport(data.report);
       }
     } catch {
-      // Fallback local report
       setStudentReport({
         username: clean,
         name: clean.toUpperCase(),
@@ -277,18 +317,27 @@ export default function App() {
     }
   };
 
-  // Recruiter Login Handler
+  // Recruiter Login Handler (Authenticates with Recruiter ID & Password)
   const handleRecruiterLogin = async (e) => {
     e?.preventDefault();
     setLoginError('');
 
+<<<<<<< HEAD
     const tokenOrUser = hrTokenInput.trim();
     if (!tokenOrUser) {
       setLoginError('Please enter your HR Registration ID or Employee ID / Username.');
+=======
+    const id = recruiterIdInput.trim();
+    const pass = recruiterPasswordInput.trim();
+
+    if (!id || !pass) {
+      setLoginError('Please enter both Recruiter ID and Password.');
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
       return;
     }
 
     try {
+<<<<<<< HEAD
       const payload = hrPasswordInput.trim()
         ? { username: tokenOrUser, password: hrPasswordInput.trim() }
         : { token: tokenOrUser };
@@ -318,10 +367,42 @@ export default function App() {
           token: tokenOrUser.toUpperCase(),
           hrName: 'Demo Talent Manager',
           org: 'Stripe'
-        });
-        setCurrentPage('recruiter-workspace');
+=======
+      const res = await fetch(`${API_BASE}/recruiter/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recruiterId: id, password: pass })
+      });
+      const data = await res.json();
+      if (data.success && data.recruiter) {
+        setRecruiterAuth(data.recruiter);
+        setCurrentPage('recruiter-dashboard');
+        setRecruiterIdInput('');
+        setRecruiterPasswordInput('');
       } else {
+        setLoginError(data.error || 'Invalid Recruiter ID or Password.');
+      }
+    } catch {
+      // Local check fallback
+      const found = recruitersList.find(
+        r => r.recruiterId.toUpperCase() === id.toUpperCase() && r.password === pass
+      );
+      if (found) {
+        setRecruiterAuth({
+          recruiterId: found.recruiterId,
+          hrName: found.hrName,
+          org: found.org
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
+        });
+        setCurrentPage('recruiter-dashboard');
+        setRecruiterIdInput('');
+        setRecruiterPasswordInput('');
+      } else {
+<<<<<<< HEAD
         setLoginError('Invalid credentials. Check your Employee ID and password or use "HR-8192-STRIPE".');
+=======
+        setLoginError('Invalid Recruiter ID or Password. Credentials can be generated in Admin Access.');
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
       }
     }
   };
@@ -346,7 +427,6 @@ export default function App() {
         setJdMatchResult(data.matchAnalysis);
       }
     } catch {
-      // Realistic simulated JD match fallback
       const jdLow = recruiterJd.toLowerCase();
       const hasGo = jdLow.includes('go') || jdLow.includes('golang');
       const hasReact = jdLow.includes('react');
@@ -372,7 +452,8 @@ export default function App() {
     }
   };
 
-  const handleGenerateHrToken = async (e) => {
+  // Admin: Create Recruiter Account (Generates ID and Password)
+  const handleCreateRecruiter = async (e) => {
     e.preventDefault();
     if (!newOrg.trim() || !newHrName.trim()) return;
 
@@ -380,9 +461,10 @@ export default function App() {
     const creds = deriveCredentials(empId);
 
     try {
-      const res = await fetch(`${API_BASE}/admin/generate-hr-token`, {
+      const res = await fetch(`${API_BASE}/admin/create-recruiter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+<<<<<<< HEAD
         body: JSON.stringify({ 
           hrName: newHrName.trim(), 
           org: newOrg.trim(),
@@ -393,12 +475,25 @@ export default function App() {
       if (data.success && data.token) {
         setHrTokens([data.token, ...hrTokens]);
         setIssuedCredentialCard(data.token);
+=======
+        body: JSON.stringify({
+          hrName: newHrName,
+          org: newOrg,
+          customId: newCustomId,
+          password: newPassword
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.recruiter) {
+        setRecruitersList([data.recruiter, ...recruitersList]);
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
       }
     } catch {
       const randomNum = Math.floor(1000 + Math.random() * 9000);
       const cleanOrg = newOrg.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-      const localToken = {
-        id: `HR-${randomNum}-${cleanOrg}`,
+      const localAccount = {
+        recruiterId: newCustomId.trim() ? newCustomId.trim().toUpperCase() : `REC-${randomNum}-${cleanOrg}`,
+        password: newPassword.trim() ? newPassword.trim() : `${cleanOrg.toLowerCase()}@pass${randomNum}`,
         hrName: newHrName.trim(),
         org: newOrg.trim(),
         employeeId: empId,
@@ -407,19 +502,33 @@ export default function App() {
         date: new Date().toISOString().split('T')[0],
         status: 'Active'
       };
+<<<<<<< HEAD
       setHrTokens([localToken, ...hrTokens]);
       setIssuedCredentialCard(localToken);
+=======
+      setRecruitersList([localAccount, ...recruitersList]);
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
     }
 
     setNewOrg('');
     setNewHrName('');
+<<<<<<< HEAD
     setNewEmployeeId('');
+=======
+    setNewCustomId('');
+    setNewPassword('');
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
   };
 
-  const copyToken = (tokenId) => {
-    navigator.clipboard.writeText(tokenId);
-    setCopiedToken(tokenId);
-    setTimeout(() => setCopiedToken(null), 2000);
+  const copyText = (val, type) => {
+    navigator.clipboard.writeText(val);
+    if (type === 'id') {
+      setCopiedId(val);
+      setTimeout(() => setCopiedId(null), 2000);
+    } else {
+      setCopiedPass(val);
+      setTimeout(() => setCopiedPass(null), 2000);
+    }
   };
 
   const handleAdminLogin = async (e) => {
@@ -494,14 +603,13 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden' }}>
       
-      {/* Background Radial Lights (Wonder Makers Studio Style) */}
+      {/* Background Radial Light */}
       <div className="radial-glow-top" />
-      <div className="radial-glow-bottom" />
 
       {/* ====================================================================
-          NAVBAR: Wonder Makers Digital Studio Header
+          NAVBAR: Clean Header with Dedicated Recruiter Button
           ==================================================================== */}
       <header style={{
         position: 'sticky',
@@ -549,7 +657,7 @@ export default function App() {
             </span>
           </div>
 
-          {/* Nav Items */}
+          {/* Navigation Links */}
           <nav style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <button
               onClick={() => setCurrentPage('home')}
@@ -584,21 +692,32 @@ export default function App() {
               Student Analysis
             </button>
 
-            {/* Recruiter Page Link */}
-            <button
-              onClick={() => {
-                if (recruiterAuth) setCurrentPage('recruiter-workspace');
-                else setCurrentPage('recruiter-login');
-              }}
-              className="btn-pill-secondary"
-              style={{
-                background: (currentPage === 'recruiter-login' || currentPage === 'recruiter-workspace') ? 'var(--surface-raised)' : 'transparent',
-                borderColor: (currentPage === 'recruiter-login' || currentPage === 'recruiter-workspace') ? 'var(--text)' : 'transparent',
-                color: 'var(--accent)'
-              }}
-            >
-              Recruiter Portal {recruiterAuth && '●'}
-            </button>
+            {/* Dedicated Recruiter Button in Navbar */}
+            {recruiterAuth ? (
+              <button
+                onClick={() => setCurrentPage('recruiter-dashboard')}
+                className="btn-pill-secondary"
+                style={{
+                  background: currentPage === 'recruiter-dashboard' ? 'var(--surface-raised)' : 'transparent',
+                  borderColor: currentPage === 'recruiter-dashboard' ? 'var(--text)' : 'transparent',
+                  color: 'var(--accent)'
+                }}
+              >
+                Recruiter Dashboard ●
+              </button>
+            ) : (
+              <button
+                onClick={() => setCurrentPage('recruiter-login')}
+                className="btn-pill-secondary"
+                style={{
+                  background: currentPage === 'recruiter-login' ? 'var(--surface-raised)' : 'transparent',
+                  borderColor: currentPage === 'recruiter-login' ? 'var(--text)' : 'transparent',
+                  color: 'var(--accent)'
+                }}
+              >
+                Recruiter Login
+              </button>
+            )}
           </nav>
 
           {/* Right Controls: Pill Switch & Action CTA */}
@@ -610,7 +729,7 @@ export default function App() {
                 <button
                   type="button"
                   className="btn-pill"
-                  onClick={() => setCurrentPage('recruiter-workspace')}
+                  onClick={() => setCurrentPage('recruiter-dashboard')}
                 >
                   <span>JD Matcher</span>
                   <div className="btn-pill-arrow">
@@ -663,7 +782,7 @@ export default function App() {
       </div>
 
       {/* ====================================================================
-          PAGE 1: HOMEPAGE / MAIN DASHBOARD (Enriched Content)
+          PAGE 1: HOMEPAGE / MAIN DASHBOARD
           ==================================================================== */}
       {currentPage === 'home' && (
         <main style={{ flex: 1 }}>
@@ -732,7 +851,7 @@ export default function App() {
                 </button>
               </form>
 
-              {/* Dual Access Action Pills */}
+              {/* Dual Action Buttons */}
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <button
                   type="button"
@@ -745,16 +864,19 @@ export default function App() {
                 <button
                   type="button"
                   className="btn-pill-secondary"
-                  onClick={() => setCurrentPage('recruiter-login')}
+                  onClick={() => {
+                    if (recruiterAuth) setCurrentPage('recruiter-dashboard');
+                    else setCurrentPage('recruiter-login');
+                  }}
                 >
                   <Briefcase size={15} style={{ color: 'var(--accent)' }} />
-                  <span>I am a Hiring Manager / Recruiter</span>
+                  <span>I am a Recruiter / Hiring Team</span>
                 </button>
               </div>
             </div>
           </section>
 
-          {/* ENRICHED CONTENT: THE RESUME PROBLEM VS COMMITCV PROOF */}
+          {/* THE RESUME PROBLEM VS COMMITCV PROOF */}
           <section className="section" style={{ background: 'var(--surface)' }}>
             <div className="container">
               <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
@@ -809,7 +931,7 @@ export default function App() {
             </div>
           </section>
 
-          {/* ENRICHED CONTENT: DUAL PURPOSE MATRIX */}
+          {/* DUAL PURPOSE MATRIX */}
           <section className="section">
             <div className="container">
               <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
@@ -846,7 +968,7 @@ export default function App() {
                   </div>
                   <h3 style={{ marginBottom: '0.75rem' }}>For Students & Engineers</h3>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-                    Stop guessing what hiring managers want. Get a transparent breakdown of your commit cadence, verified tech stacks, missing engineering hygiene (like unit tests and CI/CD), and matched roles.
+                    Stop guessing what hiring managers want. Get a transparent breakdown of your commit cadence, verified tech stacks, missing engineering hygiene, and matched roles.
                   </p>
                   <button 
                     type="button" 
@@ -881,14 +1003,14 @@ export default function App() {
                   </div>
                   <h3 style={{ marginBottom: '0.75rem' }}>For Hiring Teams & HRs</h3>
                   <p style={{ fontSize: '0.9rem', color: 'var(--muted)', lineHeight: 1.6, marginBottom: '1.5rem' }}>
-                    Paste your exact Job Description and candidate GitHub link. Our AI RAG engine matches demanded skills against real commit files, scoring true technical fit and flagging missing prerequisites.
+                    Paste your exact Job Description and candidate GitHub link. Our AI RAG engine matches demanded skills against real commit files, scoring true technical fit.
                   </p>
                   <button 
                     type="button" 
                     className="btn-pill"
                     onClick={() => setCurrentPage('recruiter-login')}
                   >
-                    <span>Launch Recruiter Matcher</span>
+                    <span>Recruiter Login</span>
                     <div className="btn-pill-arrow">
                       <ArrowRight size={14} />
                     </div>
@@ -947,7 +1069,8 @@ export default function App() {
       )}
 
       {/* ====================================================================
-          PAGE 2: SEPARATE RECRUITER LOGIN PAGE (Requested by User)
+          PAGE 2: DEDICATED RECRUITER LOGIN PAGE (Separate Login Page)
+          Requires Recruiter ID and Password generated from Admin Access
           ==================================================================== */}
       {currentPage === 'recruiter-login' && (
         <main style={{ flex: 1, padding: '4rem 0 6rem 0' }}>
@@ -966,13 +1089,22 @@ export default function App() {
 
               <h1 style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>Recruiter Portal Login</h1>
               <p style={{ color: 'var(--muted)', fontSize: '0.95rem', marginBottom: '2rem' }}>
+<<<<<<< HEAD
                 Sign in with your issued Registration Token ID or your Employee Username & Password.
+=======
+                Enter your issued Recruiter Login ID and Password to access candidate screening and JD matching.
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
               </p>
 
               <form onSubmit={handleRecruiterLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {/* Recruiter ID Field */}
                 <div>
                   <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
+<<<<<<< HEAD
                     HR REGISTRATION ID OR EMPLOYEE USERNAME:
+=======
+                    RECRUITER LOGIN ID:
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                   </label>
                   <div style={{
                     display: 'flex',
@@ -986,9 +1118,15 @@ export default function App() {
                     <Key size={16} style={{ color: 'var(--accent)' }} />
                     <input 
                       type="text"
+<<<<<<< HEAD
                       placeholder="e.g. cv101 or HR-8192-STRIPE"
                       value={hrTokenInput}
                       onChange={(e) => setHrTokenInput(e.target.value)}
+=======
+                      placeholder="e.g. REC-8192-STRIPE or REC-4091-GOOGLE"
+                      value={recruiterIdInput}
+                      onChange={(e) => setRecruiterIdInput(e.target.value)}
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                       required
                       style={{
                         flex: 1,
@@ -1004,8 +1142,10 @@ export default function App() {
                   </div>
                 </div>
 
+                {/* Password Field */}
                 <div>
                   <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
+<<<<<<< HEAD
                     PASSWORD (FOR EMPLOYEE ID LOGIN):
                   </label>
                   <div style={{
@@ -1040,23 +1180,45 @@ export default function App() {
                 <div>
                   <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.4rem' }}>
                     RECRUITER WORK EMAIL (OPTIONAL):
+=======
+                    PASSWORD:
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                   </label>
-                  <input 
-                    type="email"
-                    placeholder="e.g. sarah.jenkins@stripe.com"
-                    value={hrEmailInput}
-                    onChange={(e) => setHrEmailInput(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      background: 'var(--bg)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius-pill)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '0.85rem',
-                      color: 'var(--text)'
-                    }}
-                  />
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0 1rem',
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-pill)'
+                  }}>
+                    <Lock size={16} style={{ color: 'var(--muted)' }} />
+                    <input 
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Enter recruiter password"
+                      value={recruiterPasswordInput}
+                      onChange={(e) => setRecruiterPasswordInput(e.target.value)}
+                      required
+                      style={{
+                        flex: 1,
+                        padding: '0.75rem 0',
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.9rem',
+                        color: 'var(--text)'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', padding: 0 }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
 
                 {loginError && (
@@ -1067,32 +1229,57 @@ export default function App() {
                 )}
 
                 <button type="submit" className="btn-pill" style={{ marginTop: '0.5rem' }}>
-                  <span>Authorize & Access Matcher</span>
+                  <span>Login to Recruiter Dashboard</span>
                   <div className="btn-pill-arrow">
                     <ArrowRight size={14} />
                   </div>
                 </button>
 
-                {/* Quick Demo Access Option */}
-                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
-                    Don't have a registration token?
-                  </span>
-                  <button
-                    type="button"
-                    className="btn-pill-secondary"
-                    style={{ padding: '0.35rem 0.85rem', fontSize: '0.75rem' }}
-                    onClick={() => {
-                      setRecruiterAuth({
-                        token: 'HR-8192-STRIPE',
-                        hrName: 'Sarah Jenkins',
-                        org: 'Stripe Talent Acquisition'
-                      });
-                      setCurrentPage('recruiter-workspace');
-                    }}
-                  >
-                    ⚡ One-Click Demo Access
-                  </button>
+                {/* Demo Recruiter Credentials Box */}
+                <div style={{
+                  borderTop: '1px solid var(--border-subtle)',
+                  paddingTop: '1.25rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem'
+                }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>
+                    ⚡ TEST DEMO RECRUITER ACCOUNTS:
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className="btn-pill-secondary"
+                      style={{ justifyContent: 'space-between', padding: '0.4rem 0.85rem', fontSize: '0.78rem' }}
+                      onClick={() => {
+                        setRecruiterIdInput('REC-8192-STRIPE');
+                        setRecruiterPasswordInput('stripe@password123');
+                        setLoginError('');
+                      }}
+                    >
+                      <span>Stripe: <strong>REC-8192-STRIPE</strong> / <code>stripe@password123</code></span>
+                      <span style={{ color: 'var(--accent)' }}>Fill Credentials →</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn-pill-secondary"
+                      style={{ justifyContent: 'space-between', padding: '0.4rem 0.85rem', fontSize: '0.78rem' }}
+                      onClick={() => {
+                        setRecruiterIdInput('REC-4091-GOOGLE');
+                        setRecruiterPasswordInput('google@cloud2026');
+                        setLoginError('');
+                      }}
+                    >
+                      <span>Google: <strong>REC-4091-GOOGLE</strong> / <code>google@cloud2026</code></span>
+                      <span style={{ color: 'var(--accent)' }}>Fill Credentials →</span>
+                    </button>
+                  </div>
+
+                  <p style={{ fontSize: '0.75rem', color: 'var(--muted)', margin: '0.25rem 0 0 0' }}>
+                    Need new credentials? Create unique IDs and passwords in the <strong>Admin Access</strong> portal in footer.
+                  </p>
                 </div>
               </form>
             </div>
@@ -1101,12 +1288,12 @@ export default function App() {
       )}
 
       {/* ====================================================================
-          PAGE 3: RECRUITER WORKSPACE (JD Matcher & Candidate Code Evaluator)
+          PAGE 3: RECRUITER DASHBOARD (Post-Login Workspace)
           - Post Job Description
           - Candidate GitHub URL
           - Automated JD-Match Analysis
           ==================================================================== */}
-      {currentPage === 'recruiter-workspace' && (
+      {currentPage === 'recruiter-dashboard' && (
         <main style={{ flex: 1, padding: '3rem 0 5rem 0' }}>
           <div className="container">
             {/* Header info bar */}
@@ -1125,14 +1312,14 @@ export default function App() {
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
                   <span className="section-tag" style={{ margin: 0 }}>
-                    AUTHORIZED RECRUITER
+                    AUTHENTICATED RECRUITER
                   </span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600 }}>
-                    [{recruiterAuth?.org || 'Enterprise Partner'}]
+                    [{recruiterAuth?.org || 'Enterprise Partner'}] • {recruiterAuth?.recruiterId}
                   </span>
                 </div>
                 <h1 style={{ fontSize: '1.8rem', margin: 0 }}>
-                  Candidate JD Matcher & Code Screener
+                  Recruiter Screening Dashboard
                 </h1>
               </div>
 
@@ -1146,7 +1333,7 @@ export default function App() {
                   }}
                 >
                   <LogOut size={14} />
-                  <span>Exit Session</span>
+                  <span>Logout</span>
                 </button>
               </div>
             </div>
@@ -1645,6 +1832,7 @@ export default function App() {
       )}
 
       {/* ====================================================================
+<<<<<<< HEAD
           PAGE 5: DEDICATED SEPARATE ADMIN LOGIN (Production Security Gateway)
           ==================================================================== */}
       {(currentPage === 'admin-login' || (currentPage === 'admin' && !adminAuth)) && (
@@ -1652,6 +1840,20 @@ export default function App() {
           <div className="container" style={{ maxWidth: '520px', width: '100%' }}>
             
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+=======
+          PAGE 5: ADMIN PORTAL (Generates Recruiter ID and Password)
+          ==================================================================== */}
+      {currentPage === 'admin' && (
+        <main style={{ flex: 1, padding: '3.5rem 0 5rem 0' }}>
+          <div className="container" style={{ maxWidth: '880px' }}>
+            <div className="section-tag">ADMINISTRATIVE DASHBOARD</div>
+            <h1 style={{ fontSize: '2.4rem', marginBottom: '0.5rem' }}>Admin Control Center</h1>
+            <p style={{ color: 'var(--muted)', marginBottom: '2.5rem' }}>
+              Generate authenticated <strong>Login IDs</strong> and <strong>Passwords</strong> for company recruiters.
+            </p>
+
+            {!isAdminLoggedIn ? (
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
               <div style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -1666,6 +1868,7 @@ export default function App() {
                 color: 'var(--accent)',
                 marginBottom: '1rem'
               }}>
+<<<<<<< HEAD
                 <Shield size={12} />
                 <span>RESTRICTED ACCESS // PRODUCTION GATEWAY</span>
               </div>
@@ -1676,6 +1879,12 @@ export default function App() {
                 Authentication required. Enter administrative credentials to access the recruiter token authority.
               </p>
             </div>
+=======
+                <h3 style={{ marginBottom: '0.5rem' }}>Admin Authorization</h3>
+                <p style={{ fontSize: '0.875rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
+                  Enter your admin passcode to access the Recruiter Credentials generator.
+                </p>
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
 
             <div style={{
               background: 'var(--surface)',
@@ -2342,6 +2551,7 @@ export default function App() {
                   </div>
                 </form>
               </div>
+<<<<<<< HEAD
 
               {/* Issued Tokens Registry */}
               <div style={{
@@ -2350,6 +2560,11 @@ export default function App() {
                 borderRadius: 'var(--radius-lg)',
                 padding: '2rem'
               }}>
+=======
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                {/* Generator Form */}
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                 <div style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -2358,6 +2573,7 @@ export default function App() {
                   gap: '1rem',
                   marginBottom: '1.25rem'
                 }}>
+<<<<<<< HEAD
                   <div>
                     <h3 style={{ margin: 0, fontSize: '1.3rem' }}>Issued HR Registration Tokens & Credentials</h3>
                     <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>
@@ -2454,6 +2670,176 @@ export default function App() {
                                 <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{tok.org}</div>
                               </div>
                             </td>
+=======
+                  <h3 style={{ marginBottom: '0.4rem' }}>Generate Recruiter Account (ID & Password)</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: '1.5rem' }}>
+                    Provide recruiter details to generate their authenticated credentials.
+                  </p>
+
+                  <form onSubmit={handleCreateRecruiter} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
+                          RECRUITER NAME:
+                        </label>
+                        <input 
+                          type="text"
+                          placeholder="e.g. Rachel Adams"
+                          value={newHrName}
+                          onChange={(e) => setNewHrName(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '0.65rem 1rem',
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-pill)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.85rem',
+                            color: 'var(--text)'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
+                          ORGANIZATION / COMPANY:
+                        </label>
+                        <input 
+                          type="text"
+                          placeholder="e.g. Netflix, Stripe, Google"
+                          value={newOrg}
+                          onChange={(e) => setNewOrg(e.target.value)}
+                          required
+                          style={{
+                            width: '100%',
+                            padding: '0.65rem 1rem',
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-pill)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.85rem',
+                            color: 'var(--text)'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
+                          CUSTOM RECRUITER ID (OPTIONAL):
+                        </label>
+                        <input 
+                          type="text"
+                          placeholder="Leave blank to auto-generate"
+                          value={newCustomId}
+                          onChange={(e) => setNewCustomId(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.65rem 1rem',
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-pill)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.85rem',
+                            color: 'var(--text)'
+                          }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.3rem' }}>
+                          PASSWORD (OPTIONAL):
+                        </label>
+                        <input 
+                          type="text"
+                          placeholder="Leave blank to auto-generate"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '0.65rem 1rem',
+                            background: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-pill)',
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: '0.85rem',
+                            color: 'var(--text)'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                      <button type="submit" className="btn-pill">
+                        <span>Generate Recruiter Credentials</span>
+                        <div className="btn-pill-arrow">
+                          <UserPlus size={14} />
+                        </div>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                {/* Issued Recruiter Accounts Table */}
+                <div style={{
+                  background: 'var(--surface)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: '2rem'
+                }}>
+                  <h3 style={{ marginBottom: '1rem' }}>Active Recruiter Accounts (ID & Password)</h3>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'var(--font-mono)', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left', color: 'var(--muted)' }}>
+                          <th style={{ padding: '0.75rem' }}>RECRUITER ID</th>
+                          <th style={{ padding: '0.75rem' }}>PASSWORD</th>
+                          <th style={{ padding: '0.75rem' }}>RECRUITER NAME</th>
+                          <th style={{ padding: '0.75rem' }}>ORGANIZATION</th>
+                          <th style={{ padding: '0.75rem' }}>STATUS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recruitersList.map((acc, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                            {/* ID */}
+                            <td style={{ padding: '0.75rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{acc.recruiterId}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => copyText(acc.recruiterId, 'id')}
+                                  className="btn-pill-secondary"
+                                  style={{ padding: '0.15rem 0.4rem', fontSize: '0.68rem' }}
+                                >
+                                  {copiedId === acc.recruiterId ? <Check size={11} color="var(--accent)" /> : <Copy size={11} />}
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Password */}
+                            <td style={{ padding: '0.75rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <code style={{ background: 'var(--surface-raised)', padding: '0.2rem 0.45rem', borderRadius: '4px' }}>
+                                  {acc.password}
+                                </code>
+                                <button
+                                  type="button"
+                                  onClick={() => copyText(acc.password, 'pass')}
+                                  className="btn-pill-secondary"
+                                  style={{ padding: '0.15rem 0.4rem', fontSize: '0.68rem' }}
+                                >
+                                  {copiedPass === acc.password ? <Check size={11} color="var(--accent)" /> : <Copy size={11} />}
+                                </button>
+                              </div>
+                            </td>
+
+                            {/* Name & Org */}
+                            <td style={{ padding: '0.75rem' }}>{acc.hrName}</td>
+                            <td style={{ padding: '0.75rem' }}>{acc.org}</td>
+
+                            {/* Status */}
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                             <td style={{ padding: '0.75rem' }}>
                               <span style={{
                                 padding: '0.2rem 0.5rem',
@@ -2462,9 +2848,10 @@ export default function App() {
                                 borderRadius: 'var(--radius-pill)',
                                 fontSize: '0.72rem'
                               }}>
-                                {tok.status}
+                                {acc.status || 'Active'}
                               </span>
                             </td>
+<<<<<<< HEAD
                             <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                               <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                                 <button
@@ -2489,6 +2876,8 @@ export default function App() {
                                 )}
                               </div>
                             </td>
+=======
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
                           </tr>
                         ))}
                     </tbody>
@@ -2501,73 +2890,236 @@ export default function App() {
       )}
 
       {/* ====================================================================
-          FOOTER: Simple & Clean
+          FOOTER: VisionX Reference Layout & Constellation Network
+          Dual Mode: Carbon Obsidian (Dark) & Studio Paper (Light)
           ==================================================================== */}
-      <footer style={{
+      <footer className="constellation-wrapper" style={{
         background: 'var(--surface)',
         borderTop: '1px solid var(--border)',
-        padding: '3rem 0',
-        marginTop: 'auto'
+        padding: '4.5rem 0 2rem 0',
+        marginTop: 'auto',
+        position: 'relative'
       }}>
-        <div className="container" style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '2rem'
-        }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <div style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                background: 'var(--text)',
-                color: 'var(--bg)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                fontFamily: 'var(--font-mono)'
-              }}>
-                C
+        {/* Constellation Network SVG Background */}
+        <div className="constellation-overlay" aria-hidden="true">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.85 }}>
+            <defs>
+              <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="var(--constellation-glow)" stopOpacity="1" />
+                <stop offset="100%" stopColor="var(--constellation-glow)" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+
+            {/* Constellation Connecting Lines */}
+            <g stroke="var(--constellation-line)" strokeWidth="1">
+              <line x1="8%" y1="20%" x2="22%" y2="55%" />
+              <line x1="22%" y1="55%" x2="35%" y2="30%" />
+              <line x1="35%" y1="30%" x2="48%" y2="70%" />
+              <line x1="48%" y1="70%" x2="62%" y2="35%" />
+              <line x1="62%" y1="35%" x2="78%" y2="80%" />
+              <line x1="78%" y1="80%" x2="92%" y2="25%" />
+              <line x1="22%" y1="55%" x2="15%" y2="85%" />
+              <line x1="48%" y1="70%" x2="40%" y2="90%" />
+              <line x1="62%" y1="35%" x2="70%" y2="15%" />
+              <line x1="78%" y1="80%" x2="85%" y2="92%" />
+            </g>
+
+            {/* Star Nodes with Glow */}
+            <g fill="var(--constellation-dot)">
+              <circle cx="8%" cy="20%" r="3" />
+              <circle cx="22%" cy="55%" r="4" />
+              <circle cx="22%" cy="55%" r="12" fill="url(#nodeGlow)" />
+              <circle cx="35%" cy="30%" r="3.5" />
+              <circle cx="48%" cy="70%" r="4.5" />
+              <circle cx="48%" cy="70%" r="14" fill="url(#nodeGlow)" />
+              <circle cx="62%" cy="35%" r="3.5" />
+              <circle cx="78%" cy="80%" r="4" />
+              <circle cx="78%" cy="80%" r="12" fill="url(#nodeGlow)" />
+              <circle cx="92%" cy="25%" r="3" />
+              <circle cx="15%" cy="85%" r="2.5" />
+              <circle cx="40%" cy="90%" r="3" />
+              <circle cx="70%" cy="15%" r="2.5" />
+              <circle cx="85%" cy="92%" r="3" />
+            </g>
+          </svg>
+        </div>
+
+        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+          {/* Top 4-Column Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '3rem',
+            marginBottom: '3.5rem'
+          }}>
+            {/* Column 1: Brand & Socials */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  background: 'var(--text)',
+                  color: 'var(--bg)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 900,
+                  fontSize: '1.1rem',
+                  fontFamily: 'var(--font-mono)'
+                }}>
+                  C
+                </div>
+                <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '1.6rem', letterSpacing: '-0.02em', color: 'var(--text)' }}>
+                  CommitCV
+                </span>
               </div>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '1.25rem' }}>
-                CommitCV
-              </span>
+
+              <p style={{ fontSize: '0.925rem', color: 'var(--text)', fontWeight: 500, lineHeight: 1.65, marginBottom: '1.5rem', maxWidth: '290px', opacity: 0.9 }}>
+                Your commits are your CV. Grounding tech resumes in verifiable AST code citations and zero hallucinations.
+              </p>
+
+              {/* Social Buttons */}
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="Instagram">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                  </svg>
+                </a>
+                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="Twitter / X">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                  </svg>
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="social-circle-btn" title="LinkedIn">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.64 1.64 0 1 0 0-3.28 1.64 1.64 0 0 0 0 3.28m1.4 9.74v-8.37H5.06v8.37h2.8z"></path>
+                  </svg>
+                </a>
+              </div>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--muted)', margin: 0 }}>
-              Production developer verification grounded in AST code proof.
-            </p>
+
+            {/* Column 2: Location */}
+            <div>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                Location
+              </h4>
+              <p style={{ fontSize: '1rem', color: 'var(--text)', fontWeight: 600, lineHeight: 1.6, marginBottom: '0.4rem' }}>
+                Hyderabad, Telangana, India
+              </p>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                HQ • Remote First Engineering
+              </p>
+            </div>
+
+            {/* Column 3: Quick Links */}
+            <div>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                Quick Links
+              </h4>
+              <nav style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="footer-nav-link" onClick={() => setCurrentPage('home')}>
+                  Home
+                </span>
+                <span className="footer-nav-link" onClick={() => {
+                  setCurrentPage('home');
+                  setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
+                }}>
+                  How It Works
+                </span>
+                <span className="footer-nav-link" onClick={() => setCurrentPage('student')}>
+                  Student Code Analysis
+                </span>
+                <span className="footer-nav-link" onClick={() => {
+                  if (recruiterAuth) setCurrentPage('recruiter-dashboard');
+                  else setCurrentPage('recruiter-login');
+                }}>
+                  Recruiter Portal
+                </span>
+                <span className="footer-nav-link" onClick={() => {
+                  setCurrentPage('home');
+                  setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
+                }}>
+                  AST Verification Pipeline
+                </span>
+                <span className="footer-nav-link" onClick={() => {
+                  setCurrentPage('home');
+                  window.scrollTo({ top: 350, behavior: 'smooth' });
+                }}>
+                  Zero-Hallucination Invariant
+                </span>
+              </nav>
+
+              <div style={{
+                borderTop: '1px dotted var(--border)',
+                marginTop: '1rem',
+                paddingTop: '0.85rem'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage('admin')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text)',
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    padding: 0
+                  }}
+                >
+                  <span style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: 'var(--accent)',
+                    boxShadow: '0 0 8px var(--accent)'
+                  }} />
+                  <span>Admin Access</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Column 4: Legal */}
+            <div>
+              <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: 'var(--text)', letterSpacing: '-0.01em' }}>
+                Legal
+              </h4>
+              <nav style={{ display: 'flex', flexDirection: 'column' }}>
+                <span className="footer-nav-link" onClick={() => alert('CommitCV Policy: Zero Hallucinations, AST Verification, and PII protection.')}>
+                  Our Policy
+                </span>
+                <span className="footer-nav-link" onClick={() => alert('Terms & Conditions: Public repositories only analyzed with read-only permissions.')}>
+                  Terms & Conditions
+                </span>
+              </nav>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-            <button onClick={() => setCurrentPage('home')} className="btn-pill-secondary" style={{ border: 'none', background: 'none' }}>
-              Home
-            </button>
-            <button onClick={() => {
-              setCurrentPage('home');
-              setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 50);
-            }} className="btn-pill-secondary" style={{ border: 'none', background: 'none' }}>
-              How It Works
-            </button>
-            <button onClick={() => setCurrentPage('student')} className="btn-pill-secondary" style={{ border: 'none', background: 'none' }}>
-              Student Analysis
-            </button>
-            <button 
-              onClick={() => {
-                if (recruiterAuth) setCurrentPage('recruiter-workspace');
-                else setCurrentPage('recruiter-login');
-              }} 
-              className="btn-pill-secondary" 
-              style={{ border: 'none', background: 'none', color: 'var(--accent)' }}
-            >
-              Recruiter Portal
-            </button>
-            
-            <span style={{ color: 'var(--border)' }}>|</span>
+          {/* Bottom Floating Card */}
+          <div style={{
+            background: 'var(--surface-raised)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '1.25rem 1.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1.25rem',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.08)'
+          }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>
+              © 2026 CommitCV Platform. All rights reserved.
+            </div>
 
+<<<<<<< HEAD
             <a
               href="/admin.html"
               target="_blank"
@@ -2579,6 +3131,52 @@ export default function App() {
               <Lock size={13} style={{ color: 'var(--accent)' }} />
               <span>Admin Login ↗</span>
             </a>
+=======
+            {/* Center Pill: Admin Access button */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setCurrentPage('admin')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1.1rem',
+                  borderRadius: 'var(--radius-pill)',
+                  border: '1px solid var(--border)',
+                  background: 'var(--surface)',
+                  color: 'var(--text)',
+                  fontFamily: 'var(--font-body)',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+              >
+                <ShieldCheck size={16} style={{ color: 'var(--accent)' }} />
+                <span>Admin Access</span>
+              </button>
+            </div>
+
+            {/* Right: TEAM KANYARASI */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              fontSize: '0.9rem',
+              color: 'var(--text)',
+              fontWeight: 600,
+              flexWrap: 'wrap'
+            }}>
+              <span>Designed & Developed by</span>
+              <span className="dev-badge-pill" style={{ cursor: 'default', padding: '0.35rem 0.85rem' }}>
+                <span className="dev-dot-blue" style={{ background: 'var(--accent)', boxShadow: '0 0 8px var(--accent)', width: '8px', height: '8px' }} />
+                <span style={{ fontWeight: 800, letterSpacing: '0.04em' }}>TEAM KANYARASI</span>
+              </span>
+            </div>
+>>>>>>> 7cef4923d0848f9f750e94dfe35fd199c8adcb1c
           </div>
         </div>
       </footer>

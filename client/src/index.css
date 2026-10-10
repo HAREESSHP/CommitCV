@@ -1,7 +1,8 @@
 /* ==========================================================================
-   CommitCV Design System — Wonder Makers Reference Aesthetics
-   Ultra-high-end digital studio design with obsidian dark mode, neon highlights,
-   magnetic rounded pills, fluid typography, and clean hairline borders.
+   CommitCV Design System — Wonder Makers & VisionX Reference Styling
+   Dual Theme: Studio Paper (Light) & Carbon Obsidian (Dark)
+   Preserves CommitCV emerald green brand colors while supporting
+   constellation network backgrounds and high-end pill badges.
    ========================================================================== */
 
 :root {
@@ -17,6 +18,11 @@
   --accent-tint: #ECFDF5;
   --neon: #10B981;
   --neon-bg: #ECFDF5;
+
+  /* Constellation network tokens */
+  --constellation-line: rgba(14, 112, 81, 0.08);
+  --constellation-dot: rgba(14, 112, 81, 0.25);
+  --constellation-glow: rgba(14, 112, 81, 0.15);
 
   /* Proof Status Tokens */
   --proof-verified: #0E7051;
@@ -42,7 +48,7 @@
 }
 
 [data-theme="dark"] {
-  /* DARK THEME (Carbon Obsidian & Wonder Makers High-End Dark) */
+  /* DARK THEME (Carbon Obsidian & Starfield Constellation) */
   --bg: #07080A;
   --surface: #0E1015;
   --surface-raised: #151820;
@@ -50,14 +56,19 @@
   --muted: #8E98A5;
   --border: rgba(255, 255, 255, 0.1);
   --border-subtle: rgba(255, 255, 255, 0.05);
-  --accent: #D2FF00;              /* Wonder Makers Neon Lime */
-  --accent-tint: rgba(210, 255, 0, 0.08);
-  --neon: #D2FF00;
-  --neon-bg: rgba(210, 255, 0, 0.12);
+  --accent: #10B981;              /* Precision Luminescent Emerald */
+  --accent-tint: rgba(16, 185, 129, 0.08);
+  --neon: #10B981;
+  --neon-bg: rgba(16, 185, 129, 0.12);
+
+  /* Constellation network tokens */
+  --constellation-line: rgba(255, 255, 255, 0.08);
+  --constellation-dot: rgba(255, 255, 255, 0.35);
+  --constellation-glow: rgba(56, 189, 248, 0.2);
 
   /* Proof Status Tokens */
-  --proof-verified: #D2FF00;
-  --proof-verified-bg: rgba(210, 255, 0, 0.12);
+  --proof-verified: #10B981;
+  --proof-verified-bg: rgba(16, 185, 129, 0.12);
   --proof-partial: #F59E0B;
   --proof-partial-bg: rgba(245, 158, 11, 0.12);
   --proof-unsupported: #606875;
@@ -143,7 +154,21 @@ a {
   position: relative;
 }
 
-/* Wonder Makers Glowing Radial Ambience */
+/* Constellation Canvas & Background Overlay */
+.constellation-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.constellation-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Ambient Radial Lights */
 .radial-glow-top {
   position: absolute;
   top: -150px;
@@ -158,16 +183,7 @@ a {
 }
 
 .radial-glow-bottom {
-  position: absolute;
-  bottom: -150px;
-  left: -100px;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, var(--accent-tint) 0%, transparent 70%);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.6;
+  display: none; /* Removed to eliminate scroll space below footer */
 }
 
 /* Section Tag Badge */
@@ -188,7 +204,7 @@ a {
   border: 1px solid var(--border);
 }
 
-/* Wonder Makers Pill Button with Neon Action Arrow */
+/* Pill Button with Circular Action Arrow */
 .btn-pill {
   display: inline-flex;
   align-items: center;
@@ -250,7 +266,7 @@ a {
   background: var(--surface-raised);
 }
 
-/* Continuous Wonder Makers Marquee */
+/* Continuous Marquee */
 .marquee-container {
   background-color: var(--surface);
   border-top: 1px solid var(--border);
@@ -285,7 +301,7 @@ a {
   100% { transform: translateX(-50%); }
 }
 
-/* Pill Theme Switcher (like wondermakers.digital floating switch) */
+/* Pill Theme Switcher */
 .pill-theme-switch {
   display: inline-flex;
   align-items: center;
@@ -312,6 +328,89 @@ a {
 .pill-theme-btn.active {
   background: var(--text);
   color: var(--bg);
+}
+
+/* VisionX Reference Footer Styles */
+.social-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.social-circle-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.footer-nav-link {
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: var(--muted);
+  transition: all 150ms ease;
+  cursor: pointer;
+  display: block;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.footer-nav-link:hover {
+  color: var(--text);
+  font-weight: 700;
+  transform: translateX(3px);
+}
+
+.dev-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 150ms ease;
+  text-decoration: none;
+}
+
+.dev-badge-pill:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.dev-dot-blue {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #38BDF8;
+  box-shadow: 0 0 8px #38BDF8;
+}
+
+.dev-dot-orange {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #FB923C;
+  box-shadow: 0 0 8px #FB923C;
+}
+
+.linkedin-badge-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  font-weight: 700;
+  margin-left: 1px;
 }
 
 /* Custom Scrollbar */
