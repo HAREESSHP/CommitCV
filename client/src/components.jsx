@@ -429,7 +429,7 @@ export function EvidenceInspector({
           {/* Repo & File details */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
             gap: '0.75rem',
             padding: '0.75rem',
             background: 'var(--bg)',

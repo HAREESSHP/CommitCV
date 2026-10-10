@@ -18,12 +18,11 @@ export default function AdminAccessPage({
         {/* Dedicated Admin Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <h1 style={{ 
-            fontSize: '1.95rem', 
+            fontSize: 'clamp(1.5rem, 5vw, 1.95rem)', 
             marginBottom: '0.45rem', 
             fontFamily: 'var(--font-heading)', 
             color: 'var(--text)',
-            letterSpacing: '-0.02em',
-            whiteSpace: 'nowrap'
+            letterSpacing: '-0.02em'
           }}>
             System Administrator Access
           </h1>
@@ -33,7 +32,7 @@ export default function AdminAccessPage({
         </div>
 
         {/* Exclusive Admin Login Box */}
-        <div style={{
+        <div className="responsive-card-pad" style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-lg)',

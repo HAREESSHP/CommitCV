@@ -469,7 +469,7 @@ Evaluated by: ${recruiterAuth?.org || 'Recruiter Portal'} [ID: ${recruiterAuth?.
                     </span>
                     <div style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))',
                       gap: '0.75rem',
                       padding: '1rem 1.15rem',
                       background: 'var(--bg)',

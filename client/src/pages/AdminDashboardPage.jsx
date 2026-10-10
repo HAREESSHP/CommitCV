@@ -140,7 +140,7 @@ export default function AdminDashboardPage({
         {/* Executive Quick Stats Row */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
           gap: '1.25rem',
           marginBottom: '2rem'
         }}>
@@ -330,7 +330,7 @@ export default function AdminDashboardPage({
               {/* 4 Box Grid */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
                 gap: '0.85rem'
               }}>
                 <div style={{
@@ -449,7 +449,7 @@ export default function AdminDashboardPage({
               {/* 4 Box Shaped Feature Containers */}
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
                 gap: '1.25rem'
               }}>
                 {/* Box 1: HR Recruiter Name */}

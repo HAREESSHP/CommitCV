@@ -121,7 +121,7 @@ export default function HomePage({
         <div className="container">
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             gap: '3.5rem',
             alignItems: 'center'
           }}>
@@ -131,7 +131,7 @@ export default function HomePage({
               {/* Grand CommitCV Branding Title */}
               <h1 style={{ 
                 fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", 
-                fontSize: 'clamp(4.25rem, 8.5vw, 6.5rem)', 
+                fontSize: 'clamp(2.4rem, 7.5vw, 6.5rem)', 
                 fontWeight: 800, 
                 lineHeight: 0.92, 
                 letterSpacing: '-0.04em', 
@@ -154,7 +154,7 @@ export default function HomePage({
               <div style={{ minHeight: '130px', marginBottom: '1.5rem' }}>
                 <h2 style={{
                   fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
-                  fontSize: 'clamp(1.65rem, 3.2vw, 2.5rem)',
+                  fontSize: 'clamp(1.2rem, 3.2vw, 2.5rem)',
                   fontWeight: 700,
                   color: 'var(--text)',
                   margin: '0 0 0.5rem 0',
@@ -165,7 +165,7 @@ export default function HomePage({
                 </h2>
                 <h3 style={{
                   fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
-                  fontSize: 'clamp(1.65rem, 3.2vw, 2.5rem)',
+                  fontSize: 'clamp(1.2rem, 3.2vw, 2.5rem)',
                   fontWeight: 700,
                   color: 'var(--text)',
                   margin: 0,
@@ -289,7 +289,7 @@ export default function HomePage({
           <RevealOnScroll delay="0s">
             <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
               <div className="section-tag">01 // THE PARADIGM SHIFT</div>
-              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+              <h2 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
                 Why traditional hiring falls short
               </h2>
               <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
@@ -348,7 +348,7 @@ export default function HomePage({
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border)',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
                   gap: '0.75rem'
                 }}>
                   <div>
@@ -406,7 +406,7 @@ export default function HomePage({
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border)',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
                   gap: '0.75rem'
                 }}>
                   <div>
@@ -464,7 +464,7 @@ export default function HomePage({
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border)',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
                   gap: '0.75rem'
                 }}>
                   <div>
@@ -522,7 +522,7 @@ export default function HomePage({
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border)',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
                   gap: '0.75rem'
                 }}>
                   <div>
@@ -547,7 +547,7 @@ export default function HomePage({
           <RevealOnScroll delay="0s">
             <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
               <div className="section-tag">02 // CORE PROOF INVARIANTS</div>
-              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+              <h2 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
                 Hire on proof, not claims
               </h2>
               <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
@@ -558,7 +558,7 @@ export default function HomePage({
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
             gap: '1.5rem'
           }}>
             {/* Advantage 1 */}
@@ -757,7 +757,7 @@ export default function HomePage({
           <RevealOnScroll delay="0s">
             <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
               <div className="section-tag">03 // DUAL PIPELINE WORKFLOW</div>
-              <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+              <h2 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
                 From GitHub link to proof in three steps
               </h2>
               <p style={{ fontSize: '1.05rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '640px' }}>
@@ -860,7 +860,7 @@ export default function HomePage({
               </RevealOnScroll>
 
               {/* Side-by-Side Step 1 Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
                 {/* Student Card 1 */}
                 <RevealOnScroll delay="0.1s">
                   <div style={{
@@ -915,7 +915,7 @@ export default function HomePage({
               </RevealOnScroll>
 
               {/* Side-by-Side Step 2 Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
                 {/* Student Card 2 */}
                 <RevealOnScroll delay="0.1s">
                   <div style={{
@@ -970,7 +970,7 @@ export default function HomePage({
               </RevealOnScroll>
 
               {/* Side-by-Side Step 3 Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
                 {/* Student Card 3 */}
                 <RevealOnScroll delay="0.1s">
                   <div style={{
@@ -1066,7 +1066,7 @@ function FaqSection() {
         {/* FAQ Header */}
         <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
           <div className="section-tag">04 // FREQUENTLY ASKED QUESTIONS</div>
-          <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
+          <h2 style={{ fontSize: 'clamp(1.4rem, 3.5vw, 2.75rem)', fontFamily: "'Space Grotesk', var(--font-heading), sans-serif", marginBottom: '0.65rem' }}>
             Frequently Asked Questions
           </h2>
           <p style={{ fontSize: '1.05rem', color: 'var(--muted)', margin: '0 auto', maxWidth: '600px' }}>

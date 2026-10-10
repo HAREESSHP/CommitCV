@@ -37,7 +37,9 @@ import {
   KeyRound,
   User,
   Eye,
-  EyeOff
+  EyeOff,
+  Menu,
+  X
 } from 'lucide-react';
 
 import HomePage from './pages/HomePage';
@@ -205,6 +207,9 @@ export default function App() {
       return 'home';
     }
   });
+
+  // Navigation & Mobile Menu State
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Student Section State
   const [githubInput, setGithubInput] = useState('');
@@ -1092,7 +1097,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden', width: '100%', maxWidth: '100vw' }}>
       
       {/* Background Radial Light */}
       <div className="radial-glow-top" />
@@ -1119,8 +1124,11 @@ export default function App() {
           }}>
             {/* Logo */}
             <div 
-              onClick={() => changePage('home')}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', cursor: 'pointer', marginRight: '2.5rem' }}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                changePage('home');
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', cursor: 'pointer', marginRight: '1rem' }}
             >
               <div style={{
                 width: '36px',
@@ -1148,8 +1156,8 @@ export default function App() {
               </span>
             </div>
 
-            {/* Navigation Links */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            {/* Desktop Navigation Links */}
+            <nav className="desktop-nav" style={{ alignItems: 'center', gap: '0.75rem' }}>
               <button
                 onClick={() => changePage('home')}
                 className="btn-pill-secondary"
@@ -1214,49 +1222,122 @@ export default function App() {
               </button>
             </nav>
 
-            {/* Right Controls: Pill Switch & Action CTA */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginLeft: '1rem' }}>
+            {/* Right Controls: Pill Switch & Action CTA & Mobile Hamburger */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <WonderThemeSwitch />
 
-              {recruiterAuth ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <button
-                    type="button"
+              {/* Action CTA Button - Visible on ALL screen sizes */}
+              <div className="header-action-btn">
+                {recruiterAuth ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <button
+                      type="button"
+                      className="btn-pill"
+                      onClick={() => changePage('recruiter-dashboard')}
+                      style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                    >
+                      <span>JD Matcher</span>
+                      <div className="btn-pill-arrow" style={{ width: '22px', height: '22px' }}>
+                        <ArrowRight size={12} />
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecruiterAuth(null);
+                        changePage('home');
+                      }}
+                      className="btn-pill-secondary"
+                      title="Logout Recruiter"
+                      style={{ padding: '0.4rem 0.55rem' }}
+                    >
+                      <LogOut size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    type="button" 
                     className="btn-pill"
-                    onClick={() => changePage('recruiter-dashboard')}
+                    onClick={() => changePage('recruiter-login')}
+                    style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
                   >
-                    <span>JD Matcher</span>
-                    <div className="btn-pill-arrow">
-                      <ArrowRight size={14} />
+                    <span>Recruiter</span>
+                    <div className="btn-pill-arrow" style={{ width: '22px', height: '22px' }}>
+                      <ArrowRight size={12} />
                     </div>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRecruiterAuth(null);
-                      changePage('home');
-                    }}
-                    className="btn-pill-secondary"
-                    title="Logout Recruiter"
-                    style={{ padding: '0.45rem 0.65rem' }}
-                  >
-                    <LogOut size={14} />
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  type="button" 
-                  className="btn-pill"
-                  onClick={() => changePage('recruiter-login')}
-                >
-                  <span>Recruiter Login</span>
-                  <div className="btn-pill-arrow">
-                    <ArrowRight size={14} />
-                  </div>
-                </button>
-              )}
+                )}
+              </div>
+
+              {/* Mobile Menu Toggle Button */}
+              <button
+                type="button"
+                className="btn-pill-secondary mobile-nav-toggle"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                style={{ padding: '0.45rem 0.65rem', alignItems: 'center', gap: '0.35rem' }}
+                aria-label="Toggle navigation menu"
+              >
+                {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
             </div>
           </div>
+
+          {/* Mobile Navigation Drawer */}
+          {mobileMenuOpen && (
+            <div className="mobile-nav-drawer" style={{
+              background: 'var(--surface)',
+              borderBottom: '1px solid var(--border)',
+              padding: '1rem var(--page-pad)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.65rem'
+            }}>
+              <button
+                onClick={() => { setMobileMenuOpen(false); changePage('home'); }}
+                className="btn-pill-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.6rem 1rem' }}
+              >
+                Home
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  changePage('student');
+                }}
+                className="btn-pill-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.6rem 1rem', color: 'var(--accent)', fontWeight: 700 }}
+              >
+                <Laptop size={15} style={{ color: 'var(--accent)' }} />
+                <span>For Students</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (recruiterAuth) changePage('recruiter-dashboard');
+                  else changePage('recruiter-login');
+                }}
+                className="btn-pill-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.6rem 1rem' }}
+              >
+                <Briefcase size={15} style={{ color: 'var(--accent)' }} />
+                <span>{recruiterAuth ? 'Recruiter Dashboard' : 'Recruiter Login'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  changePage('admin-login');
+                }}
+                className="btn-pill-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.6rem 1rem' }}
+              >
+                <Key size={15} style={{ color: 'var(--accent)' }} />
+                <span>Admin Control Center</span>
+              </button>
+            </div>
+          )}
         </header>
       )}
 
@@ -1442,7 +1523,7 @@ export default function App() {
           {/* Top 4-Column Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
             gap: '3rem',
             marginBottom: '3.5rem'
           }}>

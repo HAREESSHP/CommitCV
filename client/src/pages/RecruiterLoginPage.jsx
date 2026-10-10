@@ -28,7 +28,7 @@ export default function RecruiterLoginPage({
       {/* Center: Login Card Container */}
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
         <div className="container" style={{ maxWidth: '560px', width: '100%' }}>
-          <div style={{
+          <div className="responsive-card-pad" style={{
             background: 'var(--surface)',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-lg)',

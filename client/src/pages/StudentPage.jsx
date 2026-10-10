@@ -119,7 +119,7 @@ export default function StudentPage({
             marginBottom: '1rem', 
             lineHeight: 1.05, 
             fontFamily: "'Space Grotesk', var(--font-heading), sans-serif",
-            fontSize: 'clamp(2.4rem, 4.8vw, 4rem)'
+            fontSize: 'clamp(1.75rem, 4.8vw, 4rem)'
           }}>
             Your commits are your CV. <br />
             <span style={{ color: 'var(--accent)' }}>Ground every claim in proof.</span>
@@ -136,6 +136,7 @@ export default function StudentPage({
           </p>
 
           <form 
+            className="search-form-responsive"
             onSubmit={(e) => {
               e.preventDefault();
               handleAnalyzeUsername(githubInput.trim() || 'HAREESSHP');
@@ -326,7 +327,7 @@ export default function StudentPage({
                       <code style={{ color: 'var(--proof-unsupported)', background: 'var(--proof-unsupported-bg)', padding: '0.15rem 0.55rem', borderRadius: 'var(--radius-pill)', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', border: '1px solid var(--border)', fontWeight: 700 }}>UNSUPPORTED</code>{' '}
                       instead of hallucinating qualifications.
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 160px), 1fr))', gap: '0.75rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
                       <div style={{ background: 'var(--bg)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                         <strong>Code Quality (25%)</strong>: Unit tests, linter setups, type definitions.
                       </div>
@@ -350,7 +351,7 @@ export default function StudentPage({
               {/* ====================================================================
                   5-PILLAR SCORE BREAKDOWN & COMMIT ACTIVITY HEATMAP
                  ==================================================================== */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
                 
                 {/* 5-Pillar Score Breakdown */}
                 <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
@@ -408,28 +409,30 @@ export default function StudentPage({
                   </div>
 
                   {/* 52-Week Simulated Activity Heatmap Grid */}
-                  <div style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>
-                      <span>52-WEEK COMMIT CADENCE</span>
-                      <span>{report.activity.weeklyCadence}</span>
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(26, 1fr)', gap: '4px' }}>
-                      {Array.from({ length: 52 }).map((_, i) => {
-                        const intensity = report.activity.score === 0 ? 0 : (i * 7 + report.activity.score) % 4;
-                        const bg = intensity === 3 ? 'var(--accent)' : intensity === 2 ? 'rgba(16, 185, 129, 0.6)' : intensity === 1 ? 'rgba(16, 185, 129, 0.25)' : 'var(--bg)';
-                        return (
-                          <div 
-                            key={i} 
-                            title={report.activity.score === 0 ? `Week ${i + 1}: No commits recorded` : `Week ${i + 1}: Active commits recorded`}
-                            style={{ width: '100%', height: '14px', background: bg, borderRadius: '2px', border: '1px solid var(--border-subtle)' }} 
-                          />
-                        );
-                      })}
-                    </div>
-                    <div style={{ marginTop: '0.85rem', fontSize: '0.8rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <GitCommit size={14} style={{ color: 'var(--accent)' }} />
-                      <span>Most Active Days: <strong>{(report.activity.mostActiveDays || ['None', 'None']).join(' & ')}</strong></span>
+                  <div className="mobile-scroll-x" style={{ background: 'var(--surface)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                    <div style={{ minWidth: '480px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>
+                        <span>52-WEEK COMMIT CADENCE</span>
+                        <span>{report.activity.weeklyCadence}</span>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(26, 1fr)', gap: '4px' }}>
+                        {Array.from({ length: 52 }).map((_, i) => {
+                          const intensity = report.activity.score === 0 ? 0 : (i * 7 + report.activity.score) % 4;
+                          const bg = intensity === 3 ? 'var(--accent)' : intensity === 2 ? 'rgba(16, 185, 129, 0.6)' : intensity === 1 ? 'rgba(16, 185, 129, 0.25)' : 'var(--bg)';
+                          return (
+                            <div 
+                              key={i} 
+                              title={report.activity.score === 0 ? `Week ${i + 1}: No commits recorded` : `Week ${i + 1}: Active commits recorded`}
+                              style={{ width: '100%', height: '14px', background: bg, borderRadius: '2px', border: '1px solid var(--border-subtle)' }} 
+                            />
+                          );
+                        })}
+                      </div>
+                      <div style={{ marginTop: '0.85rem', fontSize: '0.8rem', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <GitCommit size={14} style={{ color: 'var(--accent)' }} />
+                        <span>Most Active Days: <strong>{(report.activity.mostActiveDays || ['None', 'None']).join(' & ')}</strong></span>
+                      </div>
                     </div>
                   </div>
 
@@ -453,7 +456,7 @@ export default function StudentPage({
                   <span className="section-tag" style={{ margin: 0 }}>NO HALLUCINATIONS</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.25rem' }}>
                   {techStacks.length === 0 ? (
                     <div style={{
                       gridColumn: '1 / -1',
@@ -614,7 +617,7 @@ export default function StudentPage({
 
                         <div style={{
                           display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
                           gap: '1rem',
                           padding: '1rem',
                           background: 'var(--bg)',
@@ -757,7 +760,7 @@ export default function StudentPage({
               {/* ====================================================================
                   COLLABORATION & CODE QUALITY SIGNALS GRID
                  ==================================================================== */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
                 
                 {/* Collaboration Signals */}
                 <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
@@ -922,7 +925,7 @@ export default function StudentPage({
                   </div>
 
                   {/* Role Selector Card Buttons */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
                     {roles.map((r) => {
                       const isSelected = r.id === selectedRoleId || r.role === activeRole.role;
                       return (
@@ -982,7 +985,7 @@ export default function StudentPage({
                 {/* Skill Gap Analysis Box */}
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
                   gap: '1.5rem',
                   marginBottom: '2rem'
                 }}>
@@ -1111,7 +1114,7 @@ export default function StudentPage({
                 )}
 
                 {/* Learning Roadmap & Profile Improvement Tips */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
                   
                   {/* Learning Roadmap */}
                   {activeRole.learningRoadmap && (

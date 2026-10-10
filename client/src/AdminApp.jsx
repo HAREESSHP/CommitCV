@@ -689,7 +689,7 @@ export default function AdminApp() {
                   {/* 4 Box Grid */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
                     gap: '0.85rem'
                   }}>
                     <div style={{
@@ -815,7 +815,7 @@ export default function AdminApp() {
                   {/* 3 Box Shaped Feature Containers */}
                   <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
                     gap: '1.25rem'
                   }}>
                     {/* Box 1: HR Recruiter Name */}
