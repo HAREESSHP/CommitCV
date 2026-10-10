@@ -1,0 +1,334 @@
+/* ==========================================================================
+   CommitCV Design System — Wonder Makers Reference Aesthetics
+   Ultra-high-end digital studio design with obsidian dark mode, neon highlights,
+   magnetic rounded pills, fluid typography, and clean hairline borders.
+   ========================================================================== */
+
+:root {
+  /* LIGHT THEME (Studio Paper & Ink) */
+  --bg: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface-raised: #F0F2F5;
+  --text: #0B0E14;
+  --muted: #57606A;
+  --border: #E1E4E8;
+  --border-subtle: #ECEFF2;
+  --accent: #0E7051;
+  --accent-tint: #ECFDF5;
+  --neon: #10B981;
+  --neon-bg: #ECFDF5;
+
+  /* Proof Status Tokens */
+  --proof-verified: #0E7051;
+  --proof-verified-bg: #ECFDF5;
+  --proof-partial: #B45309;
+  --proof-partial-bg: #FFFBEB;
+  --proof-unsupported: #6E7781;
+  --proof-unsupported-bg: #F6F8FA;
+
+  /* Typography Stacks */
+  --font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spatial & Layout Variables */
+  --max-width: 1280px;
+  --page-pad: clamp(1.25rem, 4vw, 3rem);
+  --section-pad: clamp(4.5rem, 7vw, 7rem);
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+}
+
+[data-theme="dark"] {
+  /* DARK THEME (Carbon Obsidian & Wonder Makers High-End Dark) */
+  --bg: #07080A;
+  --surface: #0E1015;
+  --surface-raised: #151820;
+  --text: #F3F5F7;
+  --muted: #8E98A5;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --accent: #D2FF00;              /* Wonder Makers Neon Lime */
+  --accent-tint: rgba(210, 255, 0, 0.08);
+  --neon: #D2FF00;
+  --neon-bg: rgba(210, 255, 0, 0.12);
+
+  /* Proof Status Tokens */
+  --proof-verified: #D2FF00;
+  --proof-verified-bg: rgba(210, 255, 0, 0.12);
+  --proof-partial: #F59E0B;
+  --proof-partial-bg: rgba(245, 158, 11, 0.12);
+  --proof-unsupported: #606875;
+  --proof-unsupported-bg: rgba(96, 104, 117, 0.15);
+}
+
+/* CSS Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 0.8vw + 0.2rem, 1.0625rem);
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Headings */
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+h1 {
+  font-size: clamp(2.75rem, 5vw + 1rem, 4.85rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 3.5vw + 0.5rem, 3.25rem);
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  font-size: clamp(1.25rem, 1.8vw + 0.2rem, 1.75rem);
+  letter-spacing: -0.02em;
+}
+
+code, pre, .font-mono {
+  font-family: var(--font-mono);
+}
+
+p {
+  color: var(--muted);
+  max-width: 68ch;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--page-pad);
+  padding-right: var(--page-pad);
+}
+
+.section {
+  padding-top: var(--section-pad);
+  padding-bottom: var(--section-pad);
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+/* Wonder Makers Glowing Radial Ambience */
+.radial-glow-top {
+  position: absolute;
+  top: -150px;
+  right: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--accent-tint) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.radial-glow-bottom {
+  position: absolute;
+  bottom: -150px;
+  left: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, var(--accent-tint) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+/* Section Tag Badge */
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  background: var(--neon-bg);
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+}
+
+/* Wonder Makers Pill Button with Neon Action Arrow */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 0.925rem;
+  font-weight: 600;
+  padding: 0.5rem 0.6rem 0.5rem 1.4rem;
+  cursor: pointer;
+  transition: all 200ms ease;
+  border: 1px solid var(--border);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.btn-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.btn-pill-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--neon);
+  color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.btn-pill:hover .btn-pill-arrow {
+  transform: scale(1.08) rotate(-45deg);
+}
+
+/* Secondary Pill */
+.btn-pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.55rem 1.25rem;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: all 180ms ease;
+}
+
+.btn-pill-secondary:hover {
+  border-color: var(--text);
+  background: var(--surface-raised);
+}
+
+/* Continuous Wonder Makers Marquee */
+.marquee-container {
+  background-color: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 1rem 0;
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: marquee-scroll 32s linear infinite;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.marquee-content span {
+  display: inline-block;
+  padding: 0 2rem;
+}
+
+.marquee-dot {
+  color: var(--neon);
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Pill Theme Switcher (like wondermakers.digital floating switch) */
+.pill-theme-switch {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+  position: relative;
+}
+
+.pill-theme-btn {
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+  transition: all 150ms ease;
+}
+
+.pill-theme-btn.active {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}

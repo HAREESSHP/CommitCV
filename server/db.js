@@ -1,0 +1,58 @@
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+let isConnected = false;
+
+// In-memory fallbacks when MongoDB is not connected
+export const inMemoryDB = {
+  profiles: new Map(),
+  hrTokens: [
+    { id: 'HR-8192-STRIPE', hrName: 'Sarah Jenkins', org: 'Stripe', date: '2026-10-08', status: 'Active' },
+    { id: 'HR-4091-GOOGLE', hrName: 'Vikram Mehta', org: 'Google Cloud', date: '2026-10-09', status: 'Active' }
+  ]
+};
+
+export async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.log('[DB] No MONGODB_URI provided in .env. Running with in-memory persistence.');
+    return false;
+  }
+
+  if (isConnected) return true;
+
+  try {
+    await mongoose.connect(uri);
+    isConnected = true;
+    console.log('[DB] Connected to MongoDB production cluster successfully.');
+    return true;
+  } catch (err) {
+    console.warn('[DB] Failed to connect to MongoDB, falling back to in-memory store:', err.message);
+    return false;
+  }
+}
+
+// Schemas
+const StudentProfileSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true, index: true },
+  name: String,
+  avatar: String,
+  activity: Object,
+  techStacks: Array,
+  improvements: Array,
+  recommendedRoles: Array,
+  analyzedAt: { type: Date, default: Date.now }
+});
+
+const HRTokenSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, index: true },
+  hrName: { type: String, required: true },
+  org: { type: String, required: true },
+  date: { type: String, default: () => new Date().toISOString().split('T')[0] },
+  status: { type: String, default: 'Active' }
+});
+
+export const StudentProfile = mongoose.models.StudentProfile || mongoose.model('StudentProfile', StudentProfileSchema);
+export const HRToken = mongoose.models.HRToken || mongoose.model('HRToken', HRTokenSchema);
