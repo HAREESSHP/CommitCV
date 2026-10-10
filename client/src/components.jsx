@@ -17,10 +17,6 @@ import {
   Copy
 } from 'lucide-react';
 
-/* ==========================================================================
-   ThemeToggle Component
-   Persists to 'commitcv-theme', respects prefers-color-scheme, smooth transition
-   ========================================================================== */
 export function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('commitcv-theme');
