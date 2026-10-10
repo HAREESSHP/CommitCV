@@ -108,10 +108,10 @@ export default function StudentPage({
   const techStacks = report?.techStacks || [];
 
   return (
-    <main style={{ flex: 1 }}>
+    <main style={{ flex: 1, minHeight: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       
       {/* 1. STUDENT HERO & PROFILE SCANNER */}
-      <section className="section" style={{ paddingTop: '1.25rem', paddingBottom: '2.5rem' }}>
+      <section className="section" style={{ paddingTop: '2.5rem', paddingBottom: '3.5rem', borderBottom: 'none' }}>
         <div className="container" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           
           <h1 style={{ 
@@ -188,7 +188,7 @@ export default function StudentPage({
 
       {/* 2. ENRICHED STUDENT DOSSIER DISPLAY */}
       {report && (
-        <section className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', paddingBottom: '6rem' }}>
+        <section className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: 'none', paddingBottom: '6rem' }}>
           <div className="container">
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', maxWidth: '1120px', margin: '0 auto' }}>
@@ -1209,14 +1209,14 @@ export default function StudentPage({
       )}
 
       {/* 3. STUDENT PAGE FOOTER */}
-      <div style={{
+      <footer style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         width: '100%',
         marginTop: 'auto',
         paddingTop: '2.5rem',
-        marginBottom: 0
+        paddingBottom: '1.5rem'
       }}>
         <div style={{
           display: 'flex',
@@ -1244,7 +1244,7 @@ export default function StudentPage({
             </span>
           </span>
         </div>
-      </div>
+      </footer>
 
     </main>
   );
