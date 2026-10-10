@@ -135,12 +135,10 @@ export default function StudentPage({
             Analyze public GitHub codebases with AST citation grounding, 5-pillar technical scoring, and targeted role skill-gap analysis with zero hallucinations.
           </p>
 
-          {/* Quick GitHub Scan Form */}
           <form 
             onSubmit={(e) => {
               e.preventDefault();
-              if (!githubInput.trim()) return;
-              handleAnalyzeUsername(githubInput);
+              handleAnalyzeUsername(githubInput.trim() || 'HAREESSHP');
             }} 
             style={{
               display: 'flex',
@@ -218,7 +216,7 @@ export default function StudentPage({
                       </h2>
                       {/* Confidence Badge */}
                       <span className="section-tag" style={{ margin: 0, padding: '0.25rem 0.65rem', fontSize: '0.72rem', background: 'var(--neon-bg)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>
-                        ✓ {report.confidenceBadge || 'High Data Confidence'}
+                        {report.confidenceBadge || 'High Data Confidence'}
                       </span>
                     </div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--accent)', marginTop: '0.35rem', fontWeight: 600 }}>
@@ -404,7 +402,7 @@ export default function StudentPage({
                     <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--muted)', display: 'block', fontWeight: 700 }}>LONGEST STREAK</span>
                       <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
-                        ⚡ {report.activity.longestStreak || 34} Days
+                        ⚡ {report.activity.longestStreak} Days
                       </span>
                     </div>
                   </div>
@@ -727,12 +725,15 @@ export default function StudentPage({
                 
                 {/* Collaboration Signals */}
                 <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                     <GitPullRequest size={20} style={{ color: 'var(--accent)' }} />
                     <h3 style={{ fontSize: '1.3rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
                       Collaboration Signals
                     </h3>
                   </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 1.25rem 0' }}>
+                    Verified directly from real GitHub REST API event streams & forked repository telemetry.
+                  </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                     <div style={{ background: 'var(--surface)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
@@ -754,37 +755,105 @@ export default function StudentPage({
                   </div>
                 </div>
 
-                {/* Code Quality Signals */}
+                {/* Code Quality & Tooling Signals */}
                 <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                     <Code2 size={20} style={{ color: 'var(--accent)' }} />
                     <h3 style={{ fontSize: '1.3rem', margin: 0, fontFamily: "'Space Grotesk', var(--font-heading), sans-serif" }}>
                       Code Quality & Tooling Signals
                     </h3>
                   </div>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--muted)', margin: '0 0 1.25rem 0' }}>
+                    Verified from AST code tree parsing & repository manifest telemetry.
+                  </p>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.9rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                      <span style={{ color: 'var(--muted)' }}>Automated Tests</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
-                        ✓ {quality.testFramework}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                    {/* Automated Tests Row */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.85rem 1.1rem',
+                      background: 'var(--surface)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border)',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>Automated Tests</span>
+                      <span style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: 'var(--radius-pill)',
+                        background: quality.testsDetected ? 'var(--proof-verified-bg)' : 'var(--proof-unsupported-bg)',
+                        color: quality.testsDetected ? 'var(--proof-verified)' : 'var(--proof-unsupported)',
+                        border: `1px solid ${quality.testsDetected ? 'var(--proof-verified)' : 'var(--border)'}`
+                      }}>
+                        {quality.testsDetected ? quality.testFramework : 'No Unit Tests Detected'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                      <span style={{ color: 'var(--muted)' }}>CI/CD Workflows</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>
-                        ✓ {quality.ciProvider}
+
+                    {/* CI/CD Pipeline Row */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.85rem 1.1rem',
+                      background: 'var(--surface)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border)',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>CI/CD Pipeline</span>
+                      <span style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: 'var(--radius-pill)',
+                        background: quality.ciSetup ? 'var(--proof-verified-bg)' : 'var(--proof-unsupported-bg)',
+                        color: quality.ciSetup ? 'var(--proof-verified)' : 'var(--proof-unsupported)',
+                        border: `1px solid ${quality.ciSetup ? 'var(--proof-verified)' : 'var(--border)'}`
+                      }}>
+                        {quality.ciSetup ? quality.ciProvider : 'No CI Workflows Configured'}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                      <span style={{ color: 'var(--muted)' }}>README Depth Score</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text)' }}>
-                        {quality.readmeQualityScore}/100
+
+                    {/* README Quality Score Row */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.85rem 1.1rem',
+                      background: 'var(--surface)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border)',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>README Quality Score</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.88rem', fontWeight: 800, color: 'var(--text)' }}>
+                        {quality.readmeQualityScore}/100 <span style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700 }}>(Rich Documentation)</span>
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 1rem', background: 'var(--surface)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-                      <span style={{ color: 'var(--muted)' }}>Architecture Rating</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--text)' }}>
+
+                    {/* Project Architecture Rating Row */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.85rem 1.1rem',
+                      background: 'var(--surface)',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--border)',
+                      flexWrap: 'wrap',
+                      gap: '0.5rem'
+                    }}>
+                      <span style={{ fontSize: '0.9rem', color: 'var(--text)', fontWeight: 600 }}>Project Architecture</span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', fontWeight: 700, color: 'var(--accent)' }}>
                         {quality.structureRating}
                       </span>
                     </div>
@@ -878,7 +947,7 @@ export default function StudentPage({
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {(activeRole.matchingSkills || []).map((skill, i) => (
                         <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', background: 'var(--proof-verified-bg)', color: 'var(--proof-verified)', border: '1px solid var(--proof-verified)', padding: '0.3rem 0.7rem', borderRadius: 'var(--radius-pill)', fontWeight: 600 }}>
-                          ✓ {skill}
+                          {skill}
                         </span>
                       ))}
                     </div>

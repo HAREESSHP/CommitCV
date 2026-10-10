@@ -248,7 +248,7 @@ export default function RecruiterDashboardPage({
                         borderRadius: 'var(--radius-pill)',
                         border: '1px solid var(--accent)'
                       }}>
-                        ✓ {sk}
+                        {sk}
                       </span>
                     ))}
                   </div>
