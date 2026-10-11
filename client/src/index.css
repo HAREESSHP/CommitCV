@@ -78,7 +78,7 @@ body,
 #root {
   width: 100%;
   max-width: 100vw;
-  overflow-x: hidden !important;
+  overflow-x: clip;
 }
 
 body {
@@ -678,7 +678,7 @@ img, svg {
 
   body, html {
     width: 100% !important;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
   }
 
   .container {
@@ -753,4 +753,69 @@ img, svg {
     padding: 0.25rem 0.5rem !important;
     font-size: 0.65rem !important;
   }
+}
+
+/* ====================================================================
+   Stacking Cards Effect ("Why Traditional Hiring Falls Short")
+   ==================================================================== */
+.stacking-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+  max-width: 860px;
+  margin: 0 auto;
+  padding-bottom: 12rem;
+  position: relative;
+}
+
+.stacking-card {
+  position: sticky;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.75rem 3rem;
+  display: flex;
+  gap: 1.75rem;
+  align-items: flex-start;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  will-change: transform, top;
+}
+
+.stacking-card-1 {
+  top: 105px;
+  z-index: 1;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stacking-card-2 {
+  top: 142px;
+  z-index: 2;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
+.stacking-card-3 {
+  top: 179px;
+  z-index: 3;
+  box-shadow: 0 26px 58px rgba(0, 0, 0, 0.25);
+}
+
+.stacking-card-4 {
+  top: 216px;
+  z-index: 4;
+  box-shadow: 0 34px 70px rgba(0, 0, 0, 0.32);
+}
+
+@media (max-width: 768px) {
+  .stacking-cards-container {
+    gap: 2rem;
+    padding-bottom: 6rem;
+  }
+  .stacking-card {
+    padding: 1.75rem 1.5rem;
+    gap: 1.25rem;
+  }
+  .stacking-card-1 { top: 75px; }
+  .stacking-card-2 { top: 105px; }
+  .stacking-card-3 { top: 135px; }
+  .stacking-card-4 { top: 165px; }
 }

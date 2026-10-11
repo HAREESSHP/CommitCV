@@ -298,27 +298,9 @@ export default function HomePage({
             </div>
           </RevealOnScroll>
 
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '3.5rem',
-            maxWidth: '860px',
-            margin: '0 auto'
-          }}>
+          <div className="stacking-cards-container">
             {/* Stacking Card 1 */}
-            <div style={{
-              position: 'sticky',
-              top: '100px',
-              zIndex: 1,
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.75rem 3rem',
-              boxShadow: '0 16px 40px rgba(0,0,0,0.12)',
-              display: 'flex',
-              gap: '1.75rem',
-              alignItems: 'flex-start'
-            }}>
+            <div className="stacking-card stacking-card-1">
               <div style={{
                 width: '54px',
                 height: '54px',
@@ -364,19 +346,7 @@ export default function HomePage({
             </div>
 
             {/* Stacking Card 2 */}
-            <div style={{
-              position: 'sticky',
-              top: '130px',
-              zIndex: 2,
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.75rem 3rem',
-              boxShadow: '0 20px 48px rgba(0,0,0,0.15)',
-              display: 'flex',
-              gap: '1.75rem',
-              alignItems: 'flex-start'
-            }}>
+            <div className="stacking-card stacking-card-2">
               <div style={{
                 width: '54px',
                 height: '54px',
@@ -422,19 +392,7 @@ export default function HomePage({
             </div>
 
             {/* Stacking Card 3 */}
-            <div style={{
-              position: 'sticky',
-              top: '160px',
-              zIndex: 3,
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.75rem 3rem',
-              boxShadow: '0 24px 56px rgba(0,0,0,0.18)',
-              display: 'flex',
-              gap: '1.75rem',
-              alignItems: 'flex-start'
-            }}>
+            <div className="stacking-card stacking-card-3">
               <div style={{
                 width: '54px',
                 height: '54px',
@@ -480,19 +438,7 @@ export default function HomePage({
             </div>
 
             {/* Stacking Card 4 */}
-            <div style={{
-              position: 'sticky',
-              top: '190px',
-              zIndex: 4,
-              background: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2.75rem 3rem',
-              boxShadow: '0 28px 64px rgba(0,0,0,0.22)',
-              display: 'flex',
-              gap: '1.75rem',
-              alignItems: 'flex-start'
-            }}>
+            <div className="stacking-card stacking-card-4">
               <div style={{
                 width: '54px',
                 height: '54px',

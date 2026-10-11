@@ -1099,7 +1099,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'hidden', width: '100%', maxWidth: '100vw' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', overflowX: 'clip', width: '100%', maxWidth: '100vw' }}>
       
       {/* Background Radial Light */}
       <div className="radial-glow-top" />
