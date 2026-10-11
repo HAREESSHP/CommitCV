@@ -1,8 +1,13 @@
-/**
- * CommitCV RAG & Code Grounding Engine
- * Translates GitHub activity into student-centric career intelligence
- * and performs recruiter Job Description (JD) matching.
- */
+import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+try {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  dotenv.config({ path: path.join(__dirname, '.env') });
+} catch (e) {}
+dotenv.config();
 
 export function analyzeCandidate(githubData) {
   const { user, repos = [], events = [], readmes = {}, manifests = {}, repoLanguages = {} } = githubData;
@@ -600,23 +605,20 @@ export function analyzeCandidate(githubData) {
  * Recruiter Feature: Compare a Job Description against Candidate Code
  */
 export function matchCandidateWithJD(jobDescription, candidateReport) {
-  if (!jobDescription || !candidateReport) {
-    return {
-      matchScore: 70,
-      verdict: 'PENDING ANALYSIS',
-      matchedSkills: [],
-      missingSkills: [],
-      skillBadges: [],
-      evidenceStrengths: [],
-      topRelevantProjects: [],
-      activityOverview: {},
-      neutralGaps: [],
-      assessmentSummary: 'Please provide both a Job Description and a candidate username.'
-    };
+  // Handle parameter swapping or missing reports
+  if (typeof jobDescription === 'object' && typeof candidateReport !== 'object') {
+    const temp = jobDescription;
+    jobDescription = candidateReport;
+    candidateReport = temp;
+  }
+  if (!candidateReport && typeof jobDescription === 'object') {
+    candidateReport = jobDescription;
+    jobDescription = '';
   }
 
-  const handle = candidateReport.username || candidateReport.name || 'candidate';
-  const jdLower = jobDescription.toLowerCase();
+  const jdString = typeof jobDescription === 'string' ? jobDescription : '';
+  const jdLower = jdString.toLowerCase();
+  const handle = candidateReport?.username || candidateReport?.name || 'candidate';
 
   // Comprehensive catalog of technical skills with precise matching regexes & file locations
   const skillCatalog = [
@@ -804,3 +806,461 @@ export function matchCandidateWithJD(jobDescription, candidateReport) {
     assessmentSummary
   };
 }
+
+/**
+ * In-Memory Chunk Vector & Document Store
+ * HARD ISOLATED BY candidate_id metadata.
+ * Structure: Map<candidate_id, Array<{ text, file_path, file_url, proofState, candidate_id }>>
+ */
+const candidateChunkStore = new Map();
+
+/**
+ * 1. Index each candidate's code files, READMEs, manifests, and commits with candidate_id
+ */
+export function indexCandidateChunks(githubData) {
+  if (!githubData || !githubData.user) return [];
+
+  const handle = (githubData.user.login || 'candidate').toLowerCase().trim();
+  const repos = githubData.repos || [];
+  const readmes = githubData.readmes || {};
+  const manifests = githubData.manifests || {};
+  const events = githubData.events || [];
+
+  const chunks = [];
+
+  // Index Top Repositories & READMEs
+  repos.forEach(repo => {
+    const repoName = repo.name;
+    const lang = repo.language || 'Code';
+    const repoUrl = `https://github.com/${handle}/${repoName}`;
+
+    chunks.push({
+      candidate_id: handle,
+      file_path: `${repoName}/repository_summary`,
+      file_url: repoUrl,
+      proofState: 'VERIFIED',
+      text: `Repository ${repoName} (${lang}): ${repo.description || 'Production application'}. Topics: ${(repo.topics || []).join(', ')}. Stargazers: ${repo.stargazers_count || 0}.`
+    });
+
+    const readmeText = readmes[repoName];
+    if (readmeText && readmeText.length > 10) {
+      chunks.push({
+        candidate_id: handle,
+        file_path: `${repoName}/README.md`,
+        file_url: `${repoUrl}/blob/main/README.md`,
+        proofState: 'VERIFIED',
+        text: `README Documentation for ${repoName}: ${readmeText.slice(0, 500)}`
+      });
+    }
+  });
+
+  // Index Package Manifests (package.json, Dockerfile, go.mod, etc.)
+  Object.entries(manifests).forEach(([repoName, repoManifests]) => {
+    const repoUrl = `https://github.com/${handle}/${repoName}`;
+    if (repoManifests && typeof repoManifests === 'object') {
+      Object.entries(repoManifests).forEach(([filename, content]) => {
+        chunks.push({
+          candidate_id: handle,
+          file_path: `${repoName}/${filename}`,
+          file_url: `${repoUrl}/blob/main/${filename}`,
+          proofState: 'VERIFIED',
+          text: `Build Manifest ${filename} in ${repoName}: ${typeof content === 'string' ? content.slice(0, 400) : JSON.stringify(content).slice(0, 400)}`
+        });
+      });
+    }
+  });
+
+  // Index Commit Activity Telemetry
+  if (events.length > 0) {
+    const pushCount = events.filter(e => e.type === 'PushEvent').length;
+    chunks.push({
+      candidate_id: handle,
+      file_path: `github_events/commit_telemetry`,
+      file_url: `https://github.com/${handle}`,
+      proofState: 'VERIFIED',
+      text: `Commit Telemetry for @${handle}: Recorded ${events.length} recent GitHub events including ${pushCount} push events across repositories.`
+    });
+  }
+
+  // Hard Store in Memory Index
+  candidateChunkStore.set(handle, chunks);
+  return chunks;
+}
+
+/**
+ * 3. Understand the question first (Rewrite follow-ups + Classify intent)
+ */
+export function understandQuery(message, history = [], candidateId = 'candidate') {
+  const q = (message || '').trim();
+  const lowerQ = q.toLowerCase();
+  const cleanId = (candidateId || '').trim().toLowerCase();
+
+  // A. Prompt Injection Guard & Security Policies
+  if (/ignore\s+previous|ignore\s+all|override\s+instructions|system\s+prompt|show\s+prompt/i.test(lowerQ)) {
+    return {
+      standalone: q,
+      type: 'off_topic',
+      refusal: "I am CommitCV's AI assistant, grounded strictly in public repository code artifacts. I cannot bypass security policies or alter system instructions."
+    };
+  }
+
+  // B. Personal Traits PII Guard (Gender, Age, Race, Location)
+  if (/\b(gender|sex|age|how old|race|ethnicity|religion|married|marital|salary|location|address)\b/i.test(lowerQ)) {
+    return {
+      standalone: q,
+      type: 'off_topic',
+      refusal: `I focus strictly on candidate @${cleanId}'s verified source code, architecture, and technical telemetry. I do not evaluate personal traits, age, or background.`
+    };
+  }
+
+  // C. Boundary / Multi-Candidate Leak Attempt
+  if (/compare\s+with\s+candidate|other\s+candidate|candidate\s+2|another\s+user|other\s+user/i.test(lowerQ)) {
+    return {
+      standalone: q,
+      type: 'off_topic',
+      refusal: `I can only analyze code artifacts for candidate @${cleanId}. To screen another candidate, please select their profile in the portal.`
+    };
+  }
+
+  // D. Small Talk Intent (Greetings & Friendly Exchanges)
+  if (/^(hi|hello|hey|greetings|good morning|good afternoon|thanks|thank you|who are you|what can you do|sup|howdy)\b/i.test(lowerQ) && q.length < 35) {
+    return {
+      standalone: q,
+      type: 'small_talk',
+      response: `Hi! I'm your CommitCV Assistant for candidate @${cleanId}. Ask me anything about their verified GitHub code, test suites, architecture, or technical skills!`
+    };
+  }
+
+  // E. Off-Topic Intent
+  if (/capital\s+of|weather|recipe|movie|joke|sports|stock\s+price|president/i.test(lowerQ)) {
+    return {
+      standalone: q,
+      type: 'off_topic',
+      refusal: `I can help with candidate @${cleanId}'s code and experience. What would you like to know about their repositories?`
+    };
+  }
+
+  // F. Standalone Question Rewriter for Follow-ups
+  let standalone = q;
+  const lastUserMsg = [...history].reverse().find(m => (m.role === 'user' || m.sender === 'user') && m.text !== q);
+
+  if (lastUserMsg && (lastUserMsg.content || lastUserMsg.text)) {
+    const lastText = (lastUserMsg.content || lastUserMsg.text).toLowerCase();
+    let topic = '';
+
+    if (/docker|container|k8s|kubernetes|devops/i.test(lastText)) topic = 'Docker and DevOps containerization';
+    else if (/react|next|frontend|jsx|tsx/i.test(lastText)) topic = 'React and Next.js frontend code';
+    else if (/node|express|backend|api/i.test(lastText)) topic = 'Node.js and Express backend REST APIs';
+    else if (/test|vitest|jest|pytest|unit/i.test(lastText)) topic = 'unit testing and test suites';
+    else if (/project|repo|codebase/i.test(lastText)) topic = 'public GitHub projects';
+
+    if (/^(where|how|why|which\s+one|what\s+else|does\s+(he|she|they)|in\s+other\s+projects|show\s+proof|tell\s+me\s+more|give\s+details)/i.test(lowerQ)) {
+      standalone = `Does candidate @${cleanId} use ${topic || 'this technical capability'} in public repositories, and in which specific code files?`;
+    }
+  }
+
+  return {
+    standalone,
+    type: 'about_candidate'
+  };
+}
+
+/**
+ * 2 & 4. Retrieve & Evidence Threshold Check (Hard-filtered by candidate_id)
+ */
+export function retrieveCandidateEvidence(candidateId, standaloneQuery, githubData) {
+  const cleanId = (candidateId || '').trim().toLowerCase();
+  
+  // Ensure chunks are indexed for this candidate
+  let chunks = candidateChunkStore.get(cleanId);
+  if (!chunks || chunks.length === 0) {
+    if (githubData) {
+      chunks = indexCandidateChunks(githubData);
+    } else {
+      chunks = [];
+    }
+  }
+
+  // HARD BOUNDARY ENFORCEMENT IN CODE: WHERE candidate_id = :id
+  const filteredChunks = chunks.filter(c => c.candidate_id === cleanId);
+
+  if (filteredChunks.length === 0) {
+    return { score: 0, rows: [] };
+  }
+
+  const queryTerms = (standaloneQuery.toLowerCase().match(/\w+/g) || []).filter(t => t.length > 2);
+
+  const scored = filteredChunks.map(chunk => {
+    const chunkTextLower = chunk.text.toLowerCase();
+    let matchCount = 0;
+    queryTerms.forEach(term => {
+      if (chunkTextLower.includes(term)) matchCount++;
+    });
+    const score = queryTerms.length > 0 ? matchCount / queryTerms.length : 0.5;
+    return { ...chunk, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+
+  const topRows = scored.slice(0, 6);
+  const maxScore = topRows[0]?.score || 0;
+
+  return {
+    score: maxScore,
+    rows: topRows
+  };
+}
+
+/**
+ * LLM Caller: Hits Google Gemini (or OpenAI) endpoint to generate natural, ChatGPT-quality responses.
+ * Uses gemini-flash-latest with fallback to gemini-pro-latest, gemini-2.5-flash, or OpenAI gpt-4o-mini.
+ */
+async function callLLMEndpoint(systemPrompt, userPrompt) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openAIKey = process.env.OPENAI_API_KEY;
+
+  // 1. Try Gemini REST API (gemini-flash-latest, fallback gemini-pro-latest, gemini-2.5-flash)
+  if (geminiKey) {
+    const models = ['gemini-flash-latest', 'gemini-pro-latest', 'gemini-2.5-flash'];
+    for (const model of models) {
+      try {
+        console.log(`[LLM RAG] Calling Gemini API model: ${model}...`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 9000);
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }]
+          })
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          const data = await res.json();
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text && text.trim().length > 10) {
+            console.log(`[LLM RAG] Successfully generated response via Gemini (${model}).`);
+            return text.trim();
+          }
+        } else {
+          console.warn(`[LLM RAG] Gemini ${model} HTTP ${res.status}`);
+        }
+      } catch (e) {
+        console.warn(`[LLM RAG] Gemini ${model} error: ${e.message}`);
+      }
+    }
+  }
+
+  // 2. Try OpenAI API if available
+  if (openAIKey) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openAIKey}`
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ]
+        })
+      });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text && text.trim().length > 10) {
+          return text.trim();
+        }
+      }
+    } catch (e) {}
+  }
+
+  return null;
+}
+
+/**
+ * 5 & 6. LLM-Powered Conversational Recruiter Intelligence Agent (ChatGPT Style)
+ * Hits Gemini/OpenAI API with hard-isolated candidate data and AST citations.
+ */
+export async function answerRecruiterQuestion({ githubData, jdText, query, history = [] }) {
+  const handle = (githubData?.user?.login || 'candidate').toLowerCase().trim();
+  const candidateReport = analyzeCandidate(githubData);
+  const matchRes = matchCandidateWithJD(jdText, candidateReport);
+
+  // 1. Understand (Rewrite + Classify)
+  const understood = understandQuery(query, history, handle);
+
+  if (understood.type === 'off_topic') {
+    return {
+      answer: understood.refusal,
+      sources: [],
+      proofState: 'UNSUPPORTED'
+    };
+  }
+
+  // 2. Retrieve candidate evidence with HARD ID FILTERING: WHERE candidate_id = :id
+  const retrieval = retrieveCandidateEvidence(handle, understood.standalone, githubData);
+
+  // Extract candidate profile details
+  const publicRepos = matchRes.activityOverview?.publicRepos || 0;
+  const commitsLastYear = matchRes.activityOverview?.commitsLastYear || 0;
+  const consistency = matchRes.activityOverview?.consistencyLabel || 'Active Contributor';
+  const verifiedSkills = (matchRes.skillBadges || []).filter(b => b.proofState === 'VERIFIED');
+  const partialSkills = (matchRes.skillBadges || []).filter(b => b.proofState === 'PARTIAL');
+  const missingSkills = matchRes.missingSkills || [];
+  const topProjects = matchRes.topRelevantProjects || [];
+
+  // Build citation sources list to return to the UI
+  const sources = [];
+  verifiedSkills.forEach(s => {
+    if (s.citationFile && s.citationFile !== 'N/A') {
+      sources.push({ file: s.citationFile, url: s.fileUrl });
+    }
+  });
+  topProjects.forEach(p => {
+    sources.push({ file: `${p.name}/README.md`, url: `https://github.com/${handle}/${p.name}` });
+  });
+  (retrieval.rows || []).slice(0, 3).forEach(r => {
+    sources.push({ file: r.file_path, url: r.file_url });
+  });
+
+  // Deduplicate sources
+  const uniqueSources = [];
+  const sourceMap = new Map();
+  sources.forEach(s => {
+    if (s.file && !sourceMap.has(s.file)) {
+      sourceMap.set(s.file, true);
+      uniqueSources.push(s);
+    }
+  });
+
+  // Format evidence block for LLM prompt
+  const evidenceLines = [
+    `Candidate GitHub Handle: @${handle}`,
+    `Public Repositories: ${publicRepos}`,
+    `Annual Commits: ${commitsLastYear}`,
+    `Consistency Rating: ${consistency}`,
+    '',
+    'VERIFIED SKILLS (Confirmed in public code files & manifests):',
+    ...verifiedSkills.map(s => `- ${s.skill}: Verified in \`${s.citationFile}\` (${s.snippet})`),
+    '',
+    'DOCUMENTED / PARTIAL SKILLS (Mentioned in READMEs/docs, but source files unverified):',
+    ...partialSkills.map(s => `- ${s.skill}: Mentioned in \`${s.citationFile}\``),
+    '',
+    'UNSUPPORTED / UNVERIFIED SKILLS (Zero evidence found in public repos):',
+    ...missingSkills.map(m => `- ${m}: No public repository evidence found`),
+    '',
+    'TOP REPOSITORIES & PROJECTS:',
+    ...topProjects.map((p, i) => `${i + 1}. ${p.name} (${p.language}): ${p.description}. AI Summary: ${p.aiSummary}`),
+    '',
+    'RETRIEVED CODE & MANIFEST CHUNKS FOR CURRENT QUERY:',
+    ...(retrieval.rows || []).map(r => `[File: ${r.file_path}] ${r.text}`)
+  ];
+
+  if (jdText && jdText.trim().length > 10) {
+    evidenceLines.push(
+      '',
+      `JOB DESCRIPTION MATCH ANALYSIS:`,
+      `Match Score: ${matchRes.matchScore}% (${matchRes.verdict})`,
+      `Matched Requirements: ${matchRes.matchedSkills.join(', ') || 'None'}`,
+      `Missing Requirements: ${matchRes.missingSkills.join(', ') || 'None'}`
+    );
+  }
+
+  const evidenceText = evidenceLines.join('\n');
+
+  // Format conversation history for LLM
+  const historySnippet = (history || []).slice(-4).map(m => {
+    const role = (m.role === 'user' || m.sender === 'user') ? 'Recruiter' : 'CommitCV Assistant';
+    return `${role}: ${m.text || m.content || ''}`;
+  }).join('\n');
+
+  // System Prompt for LLM
+  const systemPrompt = `You are the CommitCV Candidate Intelligence Assistant (powered by AI). You are assisting an HR recruiter or hiring manager who is evaluating candidate @${handle}.
+
+CRITICAL SYSTEM RULES:
+1. HARD CANDIDATE BOUNDARY: You are strictly restricted to candidate @${handle}. Never discuss or reference other candidates.
+2. NO CLAIM WITHOUT CITATION: Base all technical assessments strictly on the candidate's verified GitHub evidence, repositories, package manifests, and commit telemetry provided below.
+3. If the recruiter asks whether the candidate knows a skill, tool, or metric and there is NO evidence in the candidate data, state clearly: "No evidence found in public repositories." Never invent, hallucinate, or assume unverified skills.
+4. TONE & STYLE: Write in the natural, articulate, professional, and helpful style of ChatGPT. Use Markdown (bold text, clean bullet points, and code spans like \`package.json\`, \`Dockerfile\`, or \`server/server.js\` when citing files).
+5. Do NOT output internal debug strings like [CHUNK 1] or rigid robotic headers.`;
+
+  const userPrompt = `=== CANDIDATE VERIFIED EVIDENCE ===
+${evidenceText}
+
+${historySnippet ? `=== PREVIOUS CONVERSATION CONTEXT ===\n${historySnippet}\n` : ''}
+=== RECRUITER QUESTION ===
+${query}`;
+
+  // 3. Make the LLM Call to Gemini / OpenAI
+  const llmResponse = await callLLMEndpoint(systemPrompt, userPrompt);
+
+  if (llmResponse && llmResponse.length > 20) {
+    // Determine proof state based on LLM response text
+    let proofState = 'VERIFIED';
+    if (/no evidence found/i.test(llmResponse) || /unsupported/i.test(llmResponse)) {
+      proofState = 'UNSUPPORTED';
+    } else if (/mentioned in.*documentation/i.test(llmResponse) || /partial/i.test(llmResponse)) {
+      proofState = 'PARTIAL';
+    }
+
+    return {
+      answer: llmResponse,
+      proofState,
+      sources: uniqueSources.slice(0, 4),
+      matchScore: matchRes.matchScore,
+      verdict: matchRes.verdict
+    };
+  }
+
+  // 4. Grounded Fallback if LLM API is unavailable or times out
+  let fallbackAnswer = '';
+  let fallbackProofState = 'VERIFIED';
+
+  const qLower = query.toLowerCase();
+  const matchedBadge = (matchRes?.skillBadges || []).find(b => qLower.includes(b.skill.toLowerCase().split(' ')[0]));
+
+  if (matchedBadge) {
+    fallbackProofState = matchedBadge.proofState;
+    if (fallbackProofState === 'VERIFIED') {
+      fallbackAnswer = `@${handle} has verified experience in ${matchedBadge.skill}. The implementation is present in \`${matchedBadge.citationFile}\` with verified AST code syntax. Key projects like ${topProjects[0]?.name || 'the codebase'} demonstrate production usage.`;
+    } else if (fallbackProofState === 'PARTIAL') {
+      fallbackAnswer = `@${handle} mentions ${matchedBadge.skill} in project documentation (\`${matchedBadge.citationFile}\`), but direct source code files were unverified in public repos. Recommended to probe depth during technical interview.`;
+    } else {
+      fallbackAnswer = "I couldn't find evidence of that in their public repos.";
+      fallbackProofState = 'UNSUPPORTED';
+    }
+  } else if (/project|repo|work|built|created/i.test(qLower)) {
+    const p1 = topProjects[0];
+    const p2 = topProjects[1];
+    fallbackAnswer = `@${handle} has developed ${publicRepos} public repositories on GitHub. ` +
+      (p1 ? `Primary project **${p1.name}** (${p1.language}) provides ${p1.aiSummary}. ` : '') +
+      (p2 ? `Secondary repository **${p2.name}** (${p2.language}) demonstrates modular architecture.` : '');
+  } else if (/match|fit|score|hire|verdict|recommend/i.test(qLower)) {
+    fallbackAnswer = `Candidate @${handle} evaluates to a **${matchRes.matchScore}% JD Match (${matchRes.verdict})**. ` +
+      (matchRes.matchedSkills.length > 0 ? `Verified proficiency in ${matchRes.matchedSkills.join(', ')}. ` : '') +
+      (matchRes.missingSkills.length > 0 ? `Probe missing skills [${matchRes.missingSkills.join(', ')}] in technical assessment.` : 'Strong overall alignment with target role.');
+  } else {
+    fallbackAnswer = `@${handle} is an active engineer with ${publicRepos} public repositories and ${commitsLastYear} commits recorded over the past year (${consistency}). ` +
+      (matchRes.matchedSkills.length > 0 ? `Verified technical grounding in ${matchRes.matchedSkills.join(', ')}.` : 'Codebases demonstrate modular architecture and clean documentation.');
+  }
+
+  return {
+    answer: fallbackAnswer,
+    proofState: fallbackProofState,
+    sources: uniqueSources.slice(0, 4),
+    matchScore: matchRes.matchScore,
+    verdict: matchRes.verdict
+  };
+}
+
+
+

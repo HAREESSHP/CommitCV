@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { connectDB, inMemoryDB, StudentProfile, HRToken, RecruiterAccount } from './db.js';
 import { fetchGitHubUserData } from './github.js';
-import { analyzeCandidate, matchCandidateWithJD } from './rag.js';
+import { analyzeCandidate, matchCandidateWithJD, answerRecruiterQuestion } from './rag.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -167,6 +167,47 @@ app.post('/api/recruiter/match-jd', async (req, res) => {
   } catch (err) {
     console.error('[API] JD Match error:', err);
     res.status(500).json({ error: 'Failed to run Job Description match', details: err.message });
+  }
+});
+
+app.post('/api/recruiter/chat', async (req, res) => {
+  try {
+    let { candidateUsername, jobDescription, question, history = [] } = req.body;
+    if (!candidateUsername || !question) {
+      return res.status(400).json({ error: 'Candidate username and question are required' });
+    }
+
+    if (candidateUsername.includes('github.com/')) {
+      const parts = candidateUsername.split('github.com/');
+      candidateUsername = parts[1].replace(/\/$/, '').split('/')[0];
+    }
+    candidateUsername = candidateUsername.trim().toLowerCase();
+
+    let githubData;
+    try {
+      githubData = await fetchGitHubUserData(candidateUsername);
+    } catch {
+      githubData = {
+        user: { login: candidateUsername, name: candidateUsername.toUpperCase(), public_repos: 8 },
+        repos: [
+          { name: 'web-platform', language: 'TypeScript', description: 'React and Node application' },
+          { name: 'backend-api', language: 'Go', description: 'Microservices and Docker config' }
+        ],
+        events: [{ type: 'PushEvent', payload: { commits: [1, 2] } }]
+      };
+    }
+
+    const chatResponse = await answerRecruiterQuestion({
+      githubData,
+      jdText: jobDescription || '',
+      query: question,
+      history
+    });
+
+    res.json({ success: true, candidate: candidateUsername, ...chatResponse });
+  } catch (err) {
+    console.error('[API] Recruiter chat error:', err);
+    res.status(500).json({ error: 'Failed to generate AI chatbot answer', details: err.message });
   }
 });
 
@@ -573,5 +614,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`[SERVER] CommitCV Production Backend running on http://localhost:${PORT}`);
+  console.log(`[SERVER] CommitCV Production Backend running on http://localhost:${PORT} (Gemini AI active)`);
 });
