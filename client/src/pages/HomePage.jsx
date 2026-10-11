@@ -284,7 +284,7 @@ export default function HomePage({
       </section>
 
       {/* 2. WHY TRADITIONAL SYSTEMS FAIL */}
-      <section id="why-traditional" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', paddingBottom: '9rem' }}>
+      <section id="why-traditional" className="section" style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)' }}>
         <div className="container">
           <RevealOnScroll delay="0s">
             <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>

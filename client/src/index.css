@@ -764,7 +764,7 @@ img, svg {
   gap: 3.5rem;
   max-width: 860px;
   margin: 0 auto;
-  padding-bottom: 12rem;
+  padding-bottom: 2.5rem;
   position: relative;
 }
 
@@ -808,7 +808,7 @@ img, svg {
 @media (max-width: 768px) {
   .stacking-cards-container {
     gap: 2rem;
-    padding-bottom: 6rem;
+    padding-bottom: 1.5rem;
   }
   .stacking-card {
     padding: 1.75rem 1.5rem;
