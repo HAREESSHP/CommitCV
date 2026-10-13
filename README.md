@@ -145,7 +145,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 # 4. Super Admin Credentials
 ADMIN_USERNAME=commitcv@1
-ADMIN_PASSWORD=your_admin_password_here
+ADMIN_PASSWORD=934631
+RECURITER_USER=cv-101
+RECURITER_PASS=cv@101
 JWT_SECRET=commitcv_secret_production_key_2026
 ```
 
