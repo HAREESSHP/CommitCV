@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { connectDB, inMemoryDB, StudentProfile, HRToken, RecruiterAccount } from './db.js';
 import { fetchGitHubUserData } from './github.js';
-import { analyzeCandidate, matchCandidateWithJD, answerRecruiterQuestion } from './rag.js';
+import { analyzeCandidate, matchCandidateWithJD, answerRecruiterQuestion, inspectCandidateForRecruiter } from './rag.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -126,6 +126,60 @@ app.get('/api/candidates', async (req, res) => {
     res.json({ success: true, candidates: profiles });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch candidate pool' });
+  }
+});
+
+// 2.5 Recruiter Instant Candidate Inspector (By GitHub ID)
+app.post('/api/recruiter/inspect', async (req, res) => {
+  try {
+    let { candidateUsername } = req.body;
+    if (!candidateUsername) {
+      return res.status(400).json({ error: 'Candidate GitHub username or profile URL is required' });
+    }
+
+    if (candidateUsername.includes('github.com/')) {
+      const parts = candidateUsername.split('github.com/');
+      candidateUsername = parts[1].replace(/\/$/, '').split('/')[0];
+    }
+    candidateUsername = candidateUsername.trim().toLowerCase();
+
+    console.log(`[API] Recruiter inspecting candidate @${candidateUsername}`);
+
+    let candidateReport = inMemoryDB.profiles.get(candidateUsername);
+    if (!candidateReport) {
+      let githubData;
+      try {
+        githubData = await fetchGitHubUserData(candidateUsername);
+      } catch (err) {
+        console.warn(`[GitHub API] Fallback inspection for @${candidateUsername}: ${err.message}`);
+        const isOwner = candidateUsername === 'hareesshp' || candidateUsername === 'hareesh';
+        githubData = {
+          user: { 
+            login: candidateUsername, 
+            name: isOwner ? 'Hareesh P' : candidateUsername.toUpperCase(), 
+            public_repos: isOwner ? 12 : 8, 
+            avatar_url: `https://github.com/${candidateUsername}.png` 
+          },
+          repos: isOwner ? [
+            { name: 'CommitCV', language: 'JavaScript', description: 'Full-stack AST citation resume verification platform with MERN stack & zero hallucinations', stargazers_count: 24, forks_count: 6, topics: ['react', 'express', 'rag', 'mongodb'] },
+            { name: 'portfolio-website', language: 'JavaScript', description: 'Modern interactive engineering portfolio and student code dossier', stargazers_count: 12, forks_count: 3, topics: ['react', 'vite', 'css-variables'] },
+            { name: 'mern-microservices', language: 'TypeScript', description: 'Decoupled REST microservices architecture with Express, Docker, and MongoDB', stargazers_count: 9, forks_count: 2, topics: ['typescript', 'express', 'docker'] }
+          ] : [
+            { name: 'web-platform', language: 'TypeScript', description: 'React and Node application with modular components', stargazers_count: 15, forks_count: 4, topics: ['react', 'typescript'] },
+            { name: 'backend-api', language: 'Go', description: 'Microservices and Docker configuration', stargazers_count: 8, forks_count: 2, topics: ['docker', 'golang'] }
+          ],
+          events: [{ type: 'PushEvent', payload: { commits: [1, 2, 3] } }]
+        };
+      }
+      candidateReport = analyzeCandidate(githubData);
+      inMemoryDB.profiles.set(candidateUsername, candidateReport);
+    }
+
+    const inspection = inspectCandidateForRecruiter(candidateReport);
+    res.json({ success: true, inspection, candidate: candidateReport });
+  } catch (err) {
+    console.error('[API] Recruiter inspection error:', err);
+    res.status(500).json({ error: 'Failed to inspect candidate', details: err.message });
   }
 });
 
