@@ -366,16 +366,19 @@ export default function RecruiterDashboardPage({
         return;
       }
 
-      if (q.includes('docker') || q.includes('devops') || q.includes('container') || q.includes('cloud')) {
-        const found = (jdMatchResult?.skillBadges || []).find(b => b.skill.toLowerCase().includes('docker') || b.skill.toLowerCase().includes('kubernetes'));
+      if (q.includes('docker') || q.includes('container')) {
+        const found = (jdMatchResult?.skillBadges || []).find(b => b.skill.toLowerCase().includes('docker') || b.skill.toLowerCase().includes('container'));
         if (found && found.proofState === 'VERIFIED') {
           answerText = `@${activeHandle} has verified DevOps and containerization artifacts in public repositories. Docker multi-stage build configurations are confirmed in \`${found.citationFile}\`.`;
           sources.push({ file: found.citationFile, url: found.fileUrl });
         } else {
           proofState = 'UNSUPPORTED';
-          answerText = "I couldn't find evidence of Docker or containerization manifests in their public repos.";
+          answerText = `No evidence found in public repositories. No Dockerfile or container manifests were identified in @${activeHandle}'s public repositories.`;
         }
-      } else if (q.includes('react') || q.includes('node') || q.includes('mongo') || q.includes('python') || q.includes('ts') || q.includes('typescript') || q.includes('skill')) {
+      } else if (q.includes('rust') || q.includes('solidity') || q.includes('web3') || q.includes('blockchain') || q.includes('haskell') || q.includes('cobol') || q.includes('quantum') || q.includes('kubernetes') || q.includes('k8s')) {
+        proofState = 'UNSUPPORTED';
+        answerText = `No evidence found in public repositories. Candidate @${activeHandle} has no recorded code, build manifests, or documentation for this capability across their public GitHub repositories.`;
+      } else if (q.includes('react') || q.includes('node') || q.includes('mongo') || q.includes('python') || q.includes('ts') || q.includes('typescript')) {
         const matched = (jdMatchResult?.matchedSkills || []).join(', ') || 'React, Express, Node.js';
         answerText = `@${activeHandle} has verified technical proficiency in **${matched}**, grounded in source code files and build manifests across public repositories.`;
         if (jdMatchResult?.evidenceStrengths?.[0]) {
@@ -387,8 +390,16 @@ export default function RecruiterDashboardPage({
           (topP ? `Primary codebase **${topP.name}** (${topP.language}) provides ${topP.aiSummary}.` : 'Repositories demonstrate modular architecture and clean documentation.');
         if (topP) sources.push({ file: `${topP.name}/README.md`, url: `https://github.com/${activeHandle}/${topP.name}` });
       } else if (q.includes('gap') || q.includes('risk') || q.includes('test') || q.includes('red flag')) {
-        answerText = `@${activeHandle} maintains clean modular code organization across public repositories. ` +
-          (jdMatchResult?.neutralGaps?.some(g => g.includes('test')) ? 'Note that public repositories currently lack automated unit test suites.' : 'Automated unit test suites (Vitest/Jest) are verified in source tree.');
+        const hasTests = !jdMatchResult?.neutralGaps?.some(g => g.includes('test'));
+        if (hasTests) {
+          answerText = `@${activeHandle} has automated unit test suites verified across public repositories.`;
+        } else {
+          proofState = 'UNSUPPORTED';
+          answerText = `No evidence found in public repositories. No automated unit test suites (Vitest, Jest, PyTest) were detected across @${activeHandle}'s public repositories.`;
+        }
+      } else if (q.includes('college') || q.includes('university') || q.includes('degree') || q.includes('school')) {
+        proofState = 'UNSUPPORTED';
+        answerText = `No evidence found in public repositories. CommitCV evaluates technical code telemetry and architecture directly from public GitHub repositories. Educational degrees or personal background are not recorded in repository code artifacts.`;
       } else {
         answerText = `@${activeHandle} evaluates to a **${jdMatchResult?.matchScore || 85}% JD Match (${jdMatchResult?.verdict || 'STRONG FIT'})**. ` +
           (jdMatchResult?.matchedSkills?.length > 0 ? `Verified technical skills in ${jdMatchResult.matchedSkills.join(', ')}.` : 'Public repository code files verify production implementation.');
